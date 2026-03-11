@@ -1,13 +1,13 @@
 /* This file is part of SoundAura, which is released under
  * the terms of the Apache License 2.0. See license.md in
  * the project's root directory to see the full license. */
-package com.cliffracertech.soundaura
+package com.gnzalobnites.soundauraplus
 
 import android.content.Context
 import androidx.core.net.toUri
 import androidx.test.core.app.ApplicationProvider
 import androidx.test.ext.junit.runners.AndroidJUnit4
-import com.cliffracertech.soundaura.model.database.TrackNamesValidator
+import com.gnzalobnites.soundauraplus.model.database.TrackNamesValidator
 import com.google.common.truth.Truth.assertThat
 import kotlinx.coroutines.test.runTest
 import org.junit.Before

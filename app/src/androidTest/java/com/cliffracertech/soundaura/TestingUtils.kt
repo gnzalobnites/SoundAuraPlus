@@ -1,7 +1,7 @@
 /* This file is part of SoundAura, which is released under
  * the terms of the Apache License 2.0. See license.md in
  * the project's root directory to see the full license. */
-package com.cliffracertech.soundaura
+package com.gnzalobnites.soundauraplus
 
 import android.content.Context
 import android.util.Log
@@ -11,7 +11,7 @@ import androidx.datastore.preferences.core.PreferenceDataStoreFactory
 import androidx.datastore.preferences.core.Preferences
 import androidx.room.Room
 import androidx.room.RoomDatabase
-import com.cliffracertech.soundaura.model.database.SoundAuraDatabase
+import com.gnzalobnites.soundauraplus.model.database.SoundAuraDatabase
 import com.google.common.truth.Subject
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers

@@ -75,10 +75,10 @@
         <receiver android:name=".widget.SoundAuraWidgetReceiver"
             android:exported="false">
             <intent-filter>
-                <action android:name="com.cliffracertech.soundaura.widget.ACTION_PLAY_PAUSE" />
-                <action android:name="com.cliffracertech.soundaura.widget.ACTION_STOP" />
-                <action android:name="com.cliffracertech.soundaura.widget.ACTION_TOGGLE_PLAYLIST" />
-                <action android:name="com.cliffracertech.soundaura.widget.ACTION_UPDATE_WIDGET" />
+                <action android:name="com.gnzalobnites.soundauraplus.widget.ACTION_PLAY_PAUSE" />
+                <action android:name="com.gnzalobnites.soundauraplus.widget.ACTION_STOP" />
+                <action android:name="com.gnzalobnites.soundauraplus.widget.ACTION_TOGGLE_PLAYLIST" />
+                <action android:name="com.gnzalobnites.soundauraplus.widget.ACTION_UPDATE_WIDGET" />
             </intent-filter>
         </receiver>
 
@@ -92,7 +92,7 @@
             android:exported="false"
             android:permission="android.permission.BIND_REMOTEVIEWS">
             <intent-filter>
-                <action android:name="com.cliffracertech.soundaura.widget.REMOTE_VIEWS_SERVICE" />
+                <action android:name="com.gnzalobnites.soundauraplus.widget.REMOTE_VIEWS_SERVICE" />
             </intent-filter>
         </service>
 
@@ -106,11 +106,12 @@
                 android:name="android.support.FILE_PROVIDER_PATHS"
                 android:resource="@xml/file_paths" />
         </provider>
+        
         <!-- WIDGET: Servicio para la lista del widget -->
-    <service
-        android:name=".widget.SoundAuraWidgetListService"
-        android:exported="false"
-        android:permission="android.permission.BIND_REMOTEVIEWS" />
+        <service
+            android:name=".widget.SoundAuraWidgetListService"
+            android:exported="false"
+            android:permission="android.permission.BIND_REMOTEVIEWS" />
 
-</application>
+    </application>
 </manifest>

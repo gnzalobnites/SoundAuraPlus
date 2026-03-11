@@ -1,7 +1,7 @@
 /* This file is part of SoundAura, which is released under
  * the terms of the Apache License 2.0. See license.md in
  * the project's root directory to see the full license. */
-package com.cliffracertech.soundaura
+package com.gnzalobnites.soundauraplus
 
 import androidx.core.net.toUri
 import androidx.datastore.preferences.core.booleanPreferencesKey
@@ -9,18 +9,18 @@ import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.test.core.app.ApplicationProvider
 import androidx.test.ext.junit.runners.AndroidJUnit4
-import com.cliffracertech.soundaura.mediacontroller.DialogType
-import com.cliffracertech.soundaura.mediacontroller.MediaControllerState
-import com.cliffracertech.soundaura.mediacontroller.MediaControllerViewModel
-import com.cliffracertech.soundaura.model.ActivePresetState
-import com.cliffracertech.soundaura.model.MessageHandler
-import com.cliffracertech.soundaura.model.NavigationState
-import com.cliffracertech.soundaura.model.PlaybackState
-import com.cliffracertech.soundaura.model.TestPlaybackState
-import com.cliffracertech.soundaura.model.database.LibraryPlaylist
-import com.cliffracertech.soundaura.model.database.Preset
-import com.cliffracertech.soundaura.service.ActivePlaylistSummary
-import com.cliffracertech.soundaura.settings.PrefKeys
+import com.gnzalobnites.soundauraplus.mediacontroller.DialogType
+import com.gnzalobnites.soundauraplus.mediacontroller.MediaControllerState
+import com.gnzalobnites.soundauraplus.mediacontroller.MediaControllerViewModel
+import com.gnzalobnites.soundauraplus.model.ActivePresetState
+import com.gnzalobnites.soundauraplus.model.MessageHandler
+import com.gnzalobnites.soundauraplus.model.NavigationState
+import com.gnzalobnites.soundauraplus.model.PlaybackState
+import com.gnzalobnites.soundauraplus.model.TestPlaybackState
+import com.gnzalobnites.soundauraplus.model.database.LibraryPlaylist
+import com.gnzalobnites.soundauraplus.model.database.Preset
+import com.gnzalobnites.soundauraplus.service.ActivePlaylistSummary
+import com.gnzalobnites.soundauraplus.settings.PrefKeys
 import com.google.common.collect.Range
 import com.google.common.truth.Truth.assertThat
 import kotlinx.coroutines.flow.first

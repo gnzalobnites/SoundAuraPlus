@@ -13,17 +13,17 @@ plugins {
 kotlin.compilerOptions.jvmTarget = JvmTarget.fromTarget("21")
 
 android {
-    namespace = "com.cliffracertech.soundaura"
+    namespace = "com.gnzalobnites.soundauraplus"
     compileSdk = 36
     sourceSets.getByName("androidTest")
         .assets.srcDir("$projectDir/schemas")
 
     defaultConfig {
-        applicationId = "com.cliffracertech.soundaura"
+        applicationId = "com.gnzalobnites.soundauraplus"
         minSdk = 24
         targetSdk = 36
-        versionCode = 13
-        versionName = "1.6.2"
+        versionCode = 1
+        versionName = "1.0"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
     buildTypes {

@@ -1,25 +1,25 @@
 /* This file is part of SoundAura, which is released under
  * the terms of the Apache License 2.0. See license.md in
  * the project's root directory to see the full license. */
-package com.cliffracertech.soundaura
+package com.gnzalobnites.soundauraplus
 
 import android.content.Context
 import androidx.core.net.toUri
 import androidx.test.core.app.ApplicationProvider
 import androidx.test.ext.junit.runners.AndroidJUnit4
-import com.cliffracertech.soundaura.addbutton.AddButtonDialogState
-import com.cliffracertech.soundaura.addbutton.AddButtonViewModel
-import com.cliffracertech.soundaura.addbutton.getDisplayName
-import com.cliffracertech.soundaura.library.Playlist
-import com.cliffracertech.soundaura.model.ActivePresetState
-import com.cliffracertech.soundaura.model.AddToLibraryUseCase
-import com.cliffracertech.soundaura.model.MessageHandler
-import com.cliffracertech.soundaura.model.NavigationState
-import com.cliffracertech.soundaura.model.ReadModifyPresetsUseCase
-import com.cliffracertech.soundaura.model.TestPermissionHandler
-import com.cliffracertech.soundaura.model.Validator
-import com.cliffracertech.soundaura.model.database.PlaylistDao
-import com.cliffracertech.soundaura.model.database.Track
+import com.gnzalobnites.soundauraplus.addbutton.AddButtonDialogState
+import com.gnzalobnites.soundauraplus.addbutton.AddButtonViewModel
+import com.gnzalobnites.soundauraplus.addbutton.getDisplayName
+import com.gnzalobnites.soundauraplus.library.Playlist
+import com.gnzalobnites.soundauraplus.model.ActivePresetState
+import com.gnzalobnites.soundauraplus.model.AddToLibraryUseCase
+import com.gnzalobnites.soundauraplus.model.MessageHandler
+import com.gnzalobnites.soundauraplus.model.NavigationState
+import com.gnzalobnites.soundauraplus.model.ReadModifyPresetsUseCase
+import com.gnzalobnites.soundauraplus.model.TestPermissionHandler
+import com.gnzalobnites.soundauraplus.model.Validator
+import com.gnzalobnites.soundauraplus.model.database.PlaylistDao
+import com.gnzalobnites.soundauraplus.model.database.Track
 import com.google.common.truth.Truth.assertThat
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.test.runTest

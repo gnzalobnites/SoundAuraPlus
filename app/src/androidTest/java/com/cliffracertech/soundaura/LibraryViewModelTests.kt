@@ -1,7 +1,7 @@
 /* This file is part of SoundAura, which is released under
  * the terms of the Apache License 2.0. See license.md in
  * the project's root directory to see the full license. */
-package com.cliffracertech.soundaura
+package com.gnzalobnites.soundauraplus
 
 import android.content.Context
 import androidx.core.net.toUri
@@ -10,23 +10,23 @@ import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.intPreferencesKey
 import androidx.test.core.app.ApplicationProvider
 import androidx.test.ext.junit.runners.AndroidJUnit4
-import com.cliffracertech.soundaura.library.LibraryState
-import com.cliffracertech.soundaura.library.LibraryViewModel
-import com.cliffracertech.soundaura.library.Playlist
-import com.cliffracertech.soundaura.library.PlaylistDialog
-import com.cliffracertech.soundaura.library.RemovablePlaylistTrack
-import com.cliffracertech.soundaura.library.uri
-import com.cliffracertech.soundaura.model.MessageHandler
-import com.cliffracertech.soundaura.model.ModifyLibraryUseCase
-import com.cliffracertech.soundaura.model.PlaybackState
-import com.cliffracertech.soundaura.model.ReadLibraryUseCase
-import com.cliffracertech.soundaura.model.SearchQueryState
-import com.cliffracertech.soundaura.model.TestPermissionHandler
-import com.cliffracertech.soundaura.model.TestPlaybackState
-import com.cliffracertech.soundaura.model.UriPermissionHandler
-import com.cliffracertech.soundaura.model.database.PlaylistDao
-import com.cliffracertech.soundaura.model.database.Track
-import com.cliffracertech.soundaura.settings.PrefKeys
+import com.gnzalobnites.soundauraplus.library.LibraryState
+import com.gnzalobnites.soundauraplus.library.LibraryViewModel
+import com.gnzalobnites.soundauraplus.library.Playlist
+import com.gnzalobnites.soundauraplus.library.PlaylistDialog
+import com.gnzalobnites.soundauraplus.library.RemovablePlaylistTrack
+import com.gnzalobnites.soundauraplus.library.uri
+import com.gnzalobnites.soundauraplus.model.MessageHandler
+import com.gnzalobnites.soundauraplus.model.ModifyLibraryUseCase
+import com.gnzalobnites.soundauraplus.model.PlaybackState
+import com.gnzalobnites.soundauraplus.model.ReadLibraryUseCase
+import com.gnzalobnites.soundauraplus.model.SearchQueryState
+import com.gnzalobnites.soundauraplus.model.TestPermissionHandler
+import com.gnzalobnites.soundauraplus.model.TestPlaybackState
+import com.gnzalobnites.soundauraplus.model.UriPermissionHandler
+import com.gnzalobnites.soundauraplus.model.database.PlaylistDao
+import com.gnzalobnites.soundauraplus.model.database.Track
+import com.gnzalobnites.soundauraplus.settings.PrefKeys
 import com.google.common.truth.Truth.assertThat
 import kotlinx.coroutines.test.runTest
 import org.junit.Before
@@ -34,7 +34,7 @@ import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 
-typealias PlaylistSort = com.cliffracertech.soundaura.model.database.Playlist.Sort
+typealias PlaylistSort = com.gnzalobnites.soundauraplus.model.database.Playlist.Sort
 
 @RunWith(AndroidJUnit4::class)
 class LibraryViewModelTests {

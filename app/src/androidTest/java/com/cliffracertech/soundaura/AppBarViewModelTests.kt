@@ -1,17 +1,17 @@
 /* This file is part of SoundAura, which is released under
    the terms of the Apache License 2.0. See license.md in
    the project's root directory to see the full license. */
-package com.cliffracertech.soundaura
+package com.gnzalobnites.soundauraplus
 
 import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.intPreferencesKey
 import androidx.test.ext.junit.runners.AndroidJUnit4
-import com.cliffracertech.soundaura.appbar.AppBarViewModel
-import com.cliffracertech.soundaura.appbar.SearchQueryViewState
-import com.cliffracertech.soundaura.model.NavigationState
-import com.cliffracertech.soundaura.model.SearchQueryState
-import com.cliffracertech.soundaura.model.database.Playlist
-import com.cliffracertech.soundaura.settings.PrefKeys
+import com.gnzalobnites.soundauraplus.appbar.AppBarViewModel
+import com.gnzalobnites.soundauraplus.appbar.SearchQueryViewState
+import com.gnzalobnites.soundauraplus.model.NavigationState
+import com.gnzalobnites.soundauraplus.model.SearchQueryState
+import com.gnzalobnites.soundauraplus.model.database.Playlist
+import com.gnzalobnites.soundauraplus.settings.PrefKeys
 import com.google.common.truth.Truth.assertThat
 import kotlinx.coroutines.test.runTest
 import org.junit.Before
