@@ -6,16 +6,16 @@
 <resources xmlns:tools="http://schemas.android.com/tools">
     
     <!-- App name (no translation) -->
-    <string name="app_name" translatable="false">SoundAura</string>
+    <string name="app_name" translatable="false">SoundAuraPlus</string>
 
     <!-- Service descriptions -->
-    <string name="app_player_service_description">A service to play the user’s sound mix.</string>
+    <string name="app_player_service_description">A service to play the userï¿½s sound mix.</string>
     <string name="player_notification_channel_name">Player controls</string>
     <string name="player_notification_channel_description">
-        A notification with controls for SoundAura’s background audio service.
+        A notification with controls for SoundAuraï¿½s background audio service.
     </string>
     <string name="player_no_active_playlists_warning_message">
-        There are no active tracks or playlists. Tap a track or playlist’s add button first.
+        There are no active tracks or playlists. Tap a track or playlistï¿½s add button first.
     </string>
     <string name="player_notification_channel_id" translatable="false">player_controls</string>
 
@@ -127,15 +127,15 @@
 
     <!-- Error messages -->
     <string name="cant_add_tracks_warning">
-        The files could not be added because Android’s file permission
+        The files could not be added because Androidï¿½s file permission
         limit would be exceeded. Remove some tracks or playlists and try
         again, or grant the app the read files permission.</string>
     <string name="cant_add_playlist_warning">
-        The playlist could not be added because Android’s file permission
+        The playlist could not be added because Androidï¿½s file permission
         limit would be exceeded. Remove some tracks or playlists and try
         again, or grant the app the read files permission.</string>
     <string name="cant_add_playlist_tracks_warning">
-        The new tracks could not be added to the playlist because Android’s file
+        The new tracks could not be added to the playlist because Androidï¿½s file
         permission limit would be exceeded. Remove some tracks or playlists and
         try again, or grant the app the read files permission.
     </string>
@@ -148,7 +148,7 @@
     <string name="preset_button_click_label">Change active preset</string>
     <string name="unsaved_preset_description">Unsaved preset</string>
     <string name="preset_selector_title">Select a preset</string>
-    <string name="empty_preset_list_message">You don’t have any saved presets.
+    <string name="empty_preset_list_message">You donï¿½t have any saved presets.
         Tap the add button below to save the current sound mix as a preset.</string>
     <string name="preset_click_label">Load preset %1$s</string>
     <string name="close_preset_selector_description">Close preset selector</string>
@@ -222,11 +222,11 @@
         Make playback controls appear in a regular notification instead
         of in the media controls section of the status bar</string>
     <string name="play_in_background_explanation_bullet_3">
-        Make playback ignore hardware media buttons (e.g. a headset’s
+        Make playback ignore hardware media buttons (e.g. a headsetï¿½s
         play/pause button) unless the app is in the foreground</string>
     <string name="play_in_background_explanation_bullet_4">
-        Prevent playback from auto-pausing during calls, unless the ‘Auto-pause during
-        calls’ setting is enabled and the read phone state permission is granted
+        Prevent playback from auto-pausing during calls, unless the ï¿½Auto-pause during
+        callsï¿½ setting is enabled and the read phone state permission is granted
     </string>
 
     <!-- Notification permission -->
@@ -260,10 +260,10 @@
     <string name="on_zero_volume_behavior_setting_description">
         This setting will determine how playback will respond to an audio
         device change that results in a volume of zero (e.g. disconnecting
-        a headset while the phone’s speakerphone volume is zero).</string>
+        a headset while the phoneï¿½s speakerphone volume is zero).</string>
     <string name="stop_playback_on_zero_volume_title">Stop playback</string>
     <string name="stop_playback_on_zero_volume_description">
-        Automatically stop the app’s background service.</string>
+        Automatically stop the appï¿½s background service.</string>
     <string name="pause_playback_on_zero_volume_title">Pause playback</string>
     <string name="pause_playback_on_zero_volume_description">
         Playback will automatically resume if another audio device change results
@@ -286,10 +286,10 @@
         through a quick settings tile.</string>
     <string name="tile_tutorial_add_tile_text">
         To add it to your active quick settings tiles, tap the fully
-        expanded status bar’s edit button, and drag the SoundAura
+        expanded status barï¿½s edit button, and drag the SoundAura
         tile into your list of current tiles.</string>
     <string name="tile_tutorial_add_tile_help_button_text">
-        Help! I can’t figure out how to add tiles.</string>
+        Help! I canï¿½t figure out how to add tiles.</string>
     <string name="tile_tutorial_add_tile_help_button_show_description">
         show add tile help</string>
     <string name="tile_tutorial_add_tile_help_button_hide_description">
@@ -297,18 +297,18 @@
     <string name="tile_tutorial_add_tile_help_text">
         The button to edit your quick settings tiles might appear
         differently depending on your device manufacturer and
-        Android version. Try searching ‘edit quick settings tiles’
+        Android version. Try searching ï¿½edit quick settings tilesï¿½
         along with your device manufacturer on an internet search
         engine.</string>
     <string name="tile_tutorial_add_tile_button_text">Add tile</string>
     <string name="tile_tutorial_tile_usage_text">
-        Tapping the tile will toggle SoundAura’s background audio
+        Tapping the tile will toggle SoundAuraï¿½s background audio
         service between its playing and stopped states. Long tapping
         the tile will open SoundAura.</string>
     <string name="tile_tutorial_hide_notification_text">
-        If you would like to hide SoundAura’s notification to save
-        space, you can hide it yourself in the %1$s. Tap ‘Notifications’
-        and disable the ‘Player controls’ notification.</string>
+        If you would like to hide SoundAuraï¿½s notification to save
+        space, you can hide it yourself in the %1$s. Tap ï¿½Notificationsï¿½
+        and disable the ï¿½Player controlsï¿½ notification.</string>
     <string name="tile_tutorial_hide_notification_link_text">
         system settings page for SoundAura</string>
 
@@ -332,7 +332,7 @@
         https://github.com/CliffracerMerchant/SoundAura</string>
 
     <!-- Widget strings -->
-    <string name="widget_name">SoundAura</string>
+    <string name="widget_name">SoundAuraPlus</string>
     <string name="widget_description">Control your music and activate/deactivate tracks</string>
     <string name="stop">Stop</string>
     <string name="play_pause">Play/Pause</string>

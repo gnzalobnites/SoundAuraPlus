@@ -6,7 +6,7 @@
 <resources xmlns:tools="http://schemas.android.com/tools">
     
     <!-- App name (no translation) -->
-    <string name="app_name" translatable="false">SoundAura</string>
+    <string name="app_name" translatable="false">SoundAuraPlus</string>
 
     <!-- Service descriptions -->
     <string name="app_player_service_description">Un servicio para reproducir la mezcla de sonido del usuario.</string>
@@ -323,7 +323,7 @@
         https://github.com/CliffracerMerchant/SoundAura</string>
 
     <!-- Widget strings -->
-    <string name="widget_name">SoundAura</string>
+    <string name="widget_name">SoundAuraPlus</string>
     <string name="widget_description">Controla tu música y activa/desactiva pistas</string>
     <string name="stop">Detener</string>
     <string name="play_pause">Reproducir/Pausar</string>
