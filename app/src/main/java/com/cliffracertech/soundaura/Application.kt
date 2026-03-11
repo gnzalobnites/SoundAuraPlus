@@ -8,10 +8,16 @@ import android.service.quicksettings.TileService
 import android.util.Log
 import com.cliffracertech.soundaura.service.PlayerService
 import com.cliffracertech.soundaura.service.TogglePlaybackTileService
+import com.cliffracertech.soundaura.model.database.SoundAuraDatabase
 import dagger.hilt.android.HiltAndroidApp
+import javax.inject.Inject
 
 @HiltAndroidApp
 class SoundAuraApplication : android.app.Application() {
+    
+    @Inject
+    lateinit var database: SoundAuraDatabase
+
     override fun onCreate() {
         super.onCreate()
 

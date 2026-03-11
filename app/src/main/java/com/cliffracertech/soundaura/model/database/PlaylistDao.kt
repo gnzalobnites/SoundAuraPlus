@@ -284,4 +284,21 @@ private const val librarySelectWithFilter =
 
     @Query("UPDATE track SET hasError = 1 WHERE uri in (:uris)")
     abstract suspend fun setTracksHaveError(uris: List<Uri>)
+
+
+// Agregar este método a PlaylistDao.kt
+
+@Query("""
+    SELECT id, name, shuffle, isActive,
+    COUNT(playlistId) = 1 AS isSingleTrack,
+    volume, volumeBoostDb,
+    SUM(track.hasError) = COUNT(track.hasError) as hasError
+    FROM playlist
+    JOIN playlistTrack ON playlist.id = playlistTrack.playlistId
+    JOIN track on playlistTrack.trackUri = track.uri
+    GROUP BY playlistTrack.playlistId
+    ORDER BY isActive DESC, name COLLATE NOCASE ASC
+    """)
+abstract suspend fun getPlaylistsForWidget(): List<LibraryPlaylist>  // ← Cambiar Playlist a LibraryPlaylist
+
 }
