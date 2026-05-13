@@ -6,29 +6,16 @@ import android.appwidget.AppWidgetProvider
 import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
-import android.support.v4.media.session.PlaybackStateCompat
 import android.widget.RemoteViews
 import androidx.core.net.toUri
 import com.gnzalobnites.soundauraplus.MainActivity
 import com.gnzalobnites.soundauraplus.R
 import com.gnzalobnites.soundauraplus.service.PlayerService
-import com.gnzalobnites.soundauraplus.service.PlayerService.Companion.PlaybackChangeListener
-import kotlinx.coroutines.*
 
 class SoundAuraWidget : AppWidgetProvider() {
 
-    private val playbackChangeListener = PlaybackChangeListener { newState ->
-        val context = appContext ?: return@PlaybackChangeListener
-        val appWidgetManager = AppWidgetManager.getInstance(context)
-        val componentName = ComponentName(context, SoundAuraWidget::class.java)
-        val appWidgetIds = appWidgetManager.getAppWidgetIds(componentName)
-
-        updateAllWidgets(context, appWidgetManager, appWidgetIds)
-    }
-
     companion object {
-        private var appContext: Context? = null
-        private var serviceScope: CoroutineScope? = null
+        var appContext: Context? = null
 
         const val ACTION_PLAY_PAUSE = "com.gnzalobnites.soundauraplus.widget.ACTION_PLAY_PAUSE"
         const val ACTION_STOP = "com.gnzalobnites.soundauraplus.widget.ACTION_STOP"
@@ -73,46 +60,20 @@ class SoundAuraWidget : AppWidgetProvider() {
     ) {
         appContext = context.applicationContext
 
-        // Iniciar servicio para mantener el widget actualizado
-        serviceScope = CoroutineScope(Dispatchers.IO + SupervisorJob())
-        startWidgetUpdateService(context)
-
-        // Registrar listener para cambios en el estado de reproducción
-        PlayerService.addPlaybackChangeListener(
-            updateImmediately = true,
-            listener = playbackChangeListener
-        )
+        // Eliminado: registro de listener de PlayerService.
+        // Ahora el widget se actualiza mediante broadcasts desde PlayerService.
 
         updateAllWidgets(context, appWidgetManager, appWidgetIds)
     }
 
     override fun onDeleted(context: Context, appWidgetIds: IntArray) {
         super.onDeleted(context, appWidgetIds)
-        checkAndCleanupListeners(context)
+        // No es necesario limpiar listeners
     }
 
     override fun onDisabled(context: Context) {
         super.onDisabled(context)
-        serviceScope?.cancel()
-        serviceScope = null
-        PlayerService.removePlaybackChangeListener(playbackChangeListener)
-    }
-
-    private fun checkAndCleanupListeners(context: Context) {
-        val appWidgetManager = AppWidgetManager.getInstance(context)
-        val componentName = ComponentName(context, SoundAuraWidget::class.java)
-        val remainingWidgets = appWidgetManager.getAppWidgetIds(componentName)
-
-        if (remainingWidgets.isEmpty()) {
-            serviceScope?.cancel()
-            serviceScope = null
-            PlayerService.removePlaybackChangeListener(playbackChangeListener)
-        }
-    }
-
-    private fun startWidgetUpdateService(context: Context) {
-        val intent = Intent(context, SoundAuraWidgetService::class.java)
-        context.startService(intent)
+        // No es necesario limpiar listeners
     }
 
     private fun updateAllWidgets(

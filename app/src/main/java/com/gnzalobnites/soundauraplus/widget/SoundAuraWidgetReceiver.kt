@@ -22,7 +22,6 @@ class SoundAuraWidgetReceiver : BroadcastReceiver() {
             SoundAuraWidget.ACTION_TOGGLE_PLAYLIST -> {
                 val playlistId = intent.getLongExtra(SoundAuraWidget.EXTRA_PLAYLIST_ID, -1)
                 if (playlistId != -1L) {
-                    // Usar goAsync() para operaciones asíncronas
                     val pendingResult = goAsync()
                     scope.launch {
                         try {

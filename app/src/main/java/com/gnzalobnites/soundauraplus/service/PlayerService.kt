@@ -1,7 +1,7 @@
 /* This file is part of SoundAura, which is released under
  * the terms of the Apache License 2.0. See license.md in
  * the project's root directory to see the full license. */
-package com.gnzalobnites.soundauraplus.service
+package com.gnzalobnites.soundauraplus.service 
 
 import android.content.Context
 import android.content.Intent
@@ -35,6 +35,7 @@ import com.gnzalobnites.soundauraplus.service.PlayerService.Companion.PlaybackCh
 import com.gnzalobnites.soundauraplus.service.PlayerService.Companion.addPlaybackChangeListener
 import com.gnzalobnites.soundauraplus.settings.PrefKeys
 import com.gnzalobnites.soundauraplus.settings.dataStore
+import com.gnzalobnites.soundauraplus.widget.SoundAuraWidget
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
@@ -256,6 +257,14 @@ class PlayerService: LifecycleService() {
             unpauseLocks.clear()
         playbackState = newState
         updateNotification()
+
+        // --- NUEVO: Notificar al widget del cambio de estado ---
+        val widgetIntent = Intent(this, com.gnzalobnites.soundauraplus.widget.SoundAuraWidgetReceiver::class.java).apply {
+            action = com.gnzalobnites.soundauraplus.widget.SoundAuraWidget.ACTION_UPDATE_WIDGET
+        }
+        sendBroadcast(widgetIntent)
+        // -----------------------------------------------------
+
         if (newState != STATE_STOPPED) when {
             isPlaying ->          playerMap.play()
             stopInsteadOfPause -> playerMap.stop()
