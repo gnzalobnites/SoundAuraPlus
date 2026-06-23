@@ -51,3 +51,6 @@ codigo.sh
 .androidide/
 .idea/
 *.iml
+
+
+.cg/
