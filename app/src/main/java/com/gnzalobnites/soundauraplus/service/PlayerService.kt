@@ -96,7 +96,9 @@ class PlayerService: LifecycleService() {
     private val playbackModules = mutableListOf(
         OnAudioDeviceChangePlaybackModule(
             unpauseLocks, ::autoPauseIf, ::setPlaybackState),
-        PhoneStateAwarePlaybackModule(::autoPauseIf))
+        PhoneStateAwarePlaybackModule(::autoPauseIf),
+        HeadsetConnectionPlaybackModule(::autoPauseIf)
+    )
     @Inject lateinit var playlistDao: PlaylistDao
     private lateinit var audioManager: AudioManager
     private lateinit var notification: PlayerNotification

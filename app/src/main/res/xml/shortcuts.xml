@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<shortcuts xmlns:android="http://schemas.android.com/apk/res/android">
+    <shortcut
+        android:shortcutId="shortcut_play_pause"
+        android:enabled="true"
+        android:icon="@drawable/ic_baseline_play_24"
+        android:shortcutShortLabel="@string/play_pause"
+        android:shortcutLongLabel="@string/play_pause">
+        
+        <intent
+            android:action="android.intent.action.VIEW"
+            android:targetPackage="com.gnzalobnites.soundauraplus"
+            android:targetClass="com.gnzalobnites.soundauraplus.ShortcutActionActivity" />
+            
+        <categories android:name="android.intent.category.DEFAULT" />
+    </shortcut>
+</shortcuts>

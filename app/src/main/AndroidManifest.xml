@@ -27,7 +27,17 @@
             <intent-filter>
                 <action android:name="android.service.quicksettings.action.QS_TILE_PREFERENCES"/>
             </intent-filter>
+            
+            <meta-data
+                android:name="android.app.shortcuts"
+                android:resource="@xml/shortcuts" />
         </activity>
+        
+        <activity
+            android:name=".ShortcutActionActivity"
+            android:theme="@android:style/Theme.Translucent.NoTitleBar"
+            android:exported="true" />
+            
 
         <service android:name=".service.PlayerService"
             android:description="@string/app_player_service_description"
@@ -87,14 +97,14 @@
             android:exported="false"
             android:permission="android.permission.BIND_REMOTEVIEWS" />
 
-        <!-- WIDGET: RemoteViewsFactory para la lista de playlists -->
+        <!-- WIDGET: RemoteViewsFactory para la lista de playlists 
         <service android:name=".widget.RemoteViewsFactory"
             android:exported="false"
             android:permission="android.permission.BIND_REMOTEVIEWS">
             <intent-filter>
                 <action android:name="com.gnzalobnites.soundauraplus.widget.REMOTE_VIEWS_SERVICE" />
             </intent-filter>
-        </service>
+        </service> -->
 
         <!-- Proveedor de contenido para el widget -->
         <provider
