@@ -26,7 +26,7 @@ class SoundAuraWidgetReceiver : BroadcastReceiver() {
                     scope.launch {
                         try {
                             val application = context.applicationContext as SoundAuraApplication
-                            val playlistDao = application.database.playlistDao()
+                            val playlistDao = application.db.playlistDao()
                             
                             // Togglear el estado de la playlist
                             playlistDao.toggleIsActive(playlistId)

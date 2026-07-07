@@ -278,8 +278,8 @@ sealed class LibraryState {
     ) {
         shownDialog = PlaylistDialog.RequestStoragePermissionExplanation(
             target = target,
-            permissionsUsed = result.permissionsUsed,
-            permissionsAllowed = result.permissionAllowance,
+            permissionsUsed = 0,
+            permissionsAllowed = result.invalidUris.size,
             onDismissRequest = ::dismissDialog,
             onOkClick = {
                 shownDialog = PlaylistDialog.RequestStoragePermission(
@@ -290,7 +290,7 @@ sealed class LibraryState {
                         if (permissionGranted) scope.launchIO {
                             modifyLibrary.setPlaylistShuffleAndTracks(
                                 target.id, shuffleEnabled,
-                                existingTracks + result.unaddedUris.map(::Track))
+                                existingTracks + result.invalidUris.map(::Track))
                         } else messageHandler.postMessage(
                             stringResId = R.string.cant_add_playlist_tracks_warning,
                             duration = SnackbarDuration.Long)

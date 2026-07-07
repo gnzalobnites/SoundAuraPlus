@@ -209,8 +209,8 @@ class AddButtonViewModel @Inject constructor(
                 is AddToLibraryUseCase.Result.Failure ->
                     showStoragePermissionExplanation(
                         addingPlaylist = false,
-                        permissionsUsed = result.permissionsUsed,
-                        permissionsAllowed = result.permissionAllowance,
+                        permissionsUsed = result.invalidUris.size,
+                        permissionsAllowed = result.totalUris - result.invalidUris.size,
                     ) { permissionGranted: Boolean ->
                         if (permissionGranted) scope.launchIO {
                             addToLibrary.addSingleTrackPlaylists(trackNames, trackUris)
@@ -238,8 +238,8 @@ class AddButtonViewModel @Inject constructor(
                 is AddToLibraryUseCase.Result.Failure ->
                     showStoragePermissionExplanation(
                         addingPlaylist = true,
-                        permissionsUsed = result.permissionsUsed,
-                        permissionsAllowed = result.permissionAllowance,
+                        permissionsUsed = result.invalidUris.size,
+                        permissionsAllowed = result.totalUris - result.invalidUris.size,
                     ) { permissionGranted ->
                         if (permissionGranted) scope.launchIO {
                             addToLibrary.addPlaylist(playlistName, shuffle, tracks)

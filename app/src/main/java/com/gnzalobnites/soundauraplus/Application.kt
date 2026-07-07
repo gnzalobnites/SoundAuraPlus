@@ -18,6 +18,9 @@ class SoundAuraApplication : android.app.Application() {
     
     @Inject
     lateinit var database: SoundAuraDatabase
+    
+    /** Propiedad pública para acceso desde el widget */
+    val db: SoundAuraDatabase get() = database
 
     override fun onCreate() {
         super.onCreate()

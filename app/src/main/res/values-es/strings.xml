@@ -329,4 +329,7 @@
     <string name="play_pause">Reproducir/Pausar</string>
     <string name="no_active_playlists">Sin reproducción</string>
     
+    <string name="uri_permission_missing_single">No se pudo acceder al archivo. El permiso puede haber expirado. Vuelve a seleccionarlo.</string>
+    <string name="uri_permission_missing_plural">No se pudo acceder a %d archivo(s). Los permisos pueden haber expirado. Vuelve a seleccionarlos.</string>
+    <string name="uri_permission_provider_not_supported">Este proveedor de archivos no permite acceso permanente. Copia los archivos al almacenamiento local y vuelve a seleccionarlos.</string>
 </resources>

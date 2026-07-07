@@ -1,6 +1,8 @@
-/* This file is part of SoundAura, which is released under
- * the terms of the Apache License 2.0. See license.md in
- * the project's root directory to see the full license. */
+/*
+ * This file is part of SoundAura, which is released under the terms of the Apache
+ * License 2.0. See license.md in the project's root directory to see the full license.
+ */
+
 package com.gnzalobnites.soundauraplus.service
 
 import android.content.Context
@@ -8,13 +10,15 @@ import android.media.MediaPlayer
 import android.media.audiofx.LoudnessEnhancer
 import android.net.Uri
 import com.gnzalobnites.soundauraplus.logd
+import com.gnzalobnites.soundauraplus.model.UriPermissionManager
 import java.io.IOException
 
 data class ActivePlaylistSummary(
     val id: Long,
     val shuffle: Boolean,
     val volume: Float,
-    val volumeBoostDb: Int)
+    val volumeBoostDb: Int
+)
 
 typealias ActivePlaylist = Map.Entry<ActivePlaylistSummary, List<Uri>>
 val ActivePlaylist.id get() = key.id
@@ -23,49 +27,19 @@ val ActivePlaylist.volume get() = key.volume
 val ActivePlaylist.volumeBoostDb get() = key.volumeBoostDb
 val ActivePlaylist.tracks get() = value
 
-/**
- * A [MediaPlayer] wrapper that allows for seamless looping of the provided
- * [ActivePlaylist]. The [update] method can be used when the [ActivePlaylist]'s
- * properties change. The property [volume] describes the current volume for
- * both audio channels, and is initialized to the [ActivePlaylist]'s [volume]
- * field.
- *
- * The methods [play], [pause], and [stop] can be used to control playback of
- * the Player. These methods correspond to the [MediaPlayer] methods of the
- * same name, except for [stop]. [Player]'s [stop] method is functionally the
- * same as pausing while seeking to the start of the media.
- *
- * If there is a problem with one or more [Uri]s within the [ActivePlaylist]'s
- * [tracks], playback of the next track will be attempted until one is found
- * that can be played. If [MediaPlayer] creation fails for all of the tracks,
- * no playback will occur, and calling [play] will have no effect. When one or
- * more tracks fail to play, the provided callback [onPlaybackFailure] will be
- * invoked.
- *
- * @param context A [Context] instance. Note that the provided context instance
- *     is held onto for the lifetime of the Player instance, and so should not
- *     be a [Context] that the Player might outlive.
- * @param playlist The [ActivePlaylist] whose contents will be played
- * @param startImmediately Whether or not the Player should start playback
- *     as soon as it is ready
- * @param onPlaybackFailure A callback that will be invoked if MediaPlayer
- *     creation fails for one or more [Uri]s in the playlist
- */
 class Player(
     private val context: Context,
     private var playlist: ActivePlaylist,
     startImmediately: Boolean = false,
     private val onPlaybackFailure: (List<Uri>) -> Unit,
+    private val onMissingPermissions: (List<Uri>) -> Unit,
+    private val permissionManager: UriPermissionManager
 ) {
     private var uriIterator = uriIterator(playlist)
     private var mediaPlayer: MediaPlayer? = null
     private var volumeBooster: LoudnessEnhancer? = null
-    // Without tracking the intended playing/paused state in this property,
-    // an issue can occur if an attempt to pause is made when the internal
-    // MediaPlayer is in the process of switching to the next track in a
-    // playlist that will cause the pause command to be ignored. This is
-    // resolved by using the value of isPlaying in the on completion listener.
     private var isPlaying = startImmediately
+    private var hasPlayableTrack = false
 
     private val onCompletionListener = MediaPlayer.OnCompletionListener {
         initializePlayerForNextUri(startImmediately = isPlaying)
@@ -77,6 +51,10 @@ class Player(
     }
 
     fun play() {
+        if (!hasPlayableTrack) {
+            logd("No se puede reproducir: no hay pistas reproducibles")
+            return
+        }
         isPlaying = true
         mediaPlayer?.start()
     }
@@ -101,7 +79,6 @@ class Player(
         mediaPlayer?.setVolume(volume, volume)
     }
 
-    /** Reset the Player to play the [newPlaylist]*/
     fun update(newPlaylist: ActivePlaylist, startImmediately: Boolean) {
         isPlaying = startImmediately
 
@@ -111,184 +88,146 @@ class Player(
             uriIterator = uriIterator(newPlaylist)
             initializePlayerForNextUri(startImmediately)
             mediaPlayer?.initializeFor(newPlaylist)
-            // initializePlayerForNextUri and MediaPlayer.initializeFor will
-            // start the player and apply the volume and volumeBoost if necessary,
-            // so this does not need to be done manually in this case.
         } else {
             setVolume(newPlaylist.volume)
             if (newPlaylist.volumeBoostDb != playlist.volumeBoostDb)
                 mediaPlayer?.boostVolume(newPlaylist.volumeBoostDb)
-            if (startImmediately)
+            if (startImmediately && hasPlayableTrack)
                 mediaPlayer?.start()
         }
         playlist = newPlaylist
     }
 
     fun release() {
-        mediaPlayer?.reset()
-        mediaPlayer?.release()
+        volumeBooster?.apply {
+            enabled = false
+            release()
+        }
+        volumeBooster = null
+
+        mediaPlayer?.let {
+            try {
+                it.setOnCompletionListener(null)
+                it.reset()
+                it.release()
+            } catch (e: Exception) {
+                logd("Error al liberar MediaPlayer: ${e.message}")
+            }
+        }
+        mediaPlayer = null
     }
 
     private fun uriIterator(playlist: ActivePlaylist) = (
-            if (!playlist.shuffle)
-                InfiniteSequence(playlist.tracks)
-            else ShuffledInfiniteSequence(
-                unshuffledValues = playlist.tracks,
-                memorySize = maxOf(1, playlist.tracks.size / 3))
+        if (!playlist.shuffle)
+            InfiniteSequence(playlist.tracks)
+        else ShuffledInfiniteSequence(
+            unshuffledValues = playlist.tracks,
+            memorySize = maxOf(1, playlist.tracks.size / 3)
+        )
         ).iterator()
 
-    /**
-     * Determine the next target [Uri], and either create a new [MediaPlayer]
-     * instance if [mediaPlayer] is null, or attempt to reset the existing
-     * player to use the target [Uri] as a data source. When the new or
-     * existing player is prepared, playback will start immediately if
-     * [startImmediately] is true.
-     *
-     * initializePlayerForNextUri must be called once for each [Uri] that is
-     * to be played. A single track playlist only needs to call it once, but
-     * a multi-track playlist will need to have it called for each track.
-     */
     private fun initializePlayerForNextUri(startImmediately: Boolean) {
-        // The number of player creation/data source setting attempts is
-        // recorded and compared to the playlist's track count so that we
-        // know when we have done one full loop of the playlist's tracks
         var attempts = 0
-        var failedUris: MutableList<Uri>? = null
         var newPlayer: MediaPlayer? = null
-        var hasPermissionError = false
+        var permissionMissingUris = mutableListOf<Uri>()
+        var ioErrorUris = mutableListOf<Uri>()
+        var foundPlayableTrack = false
 
         while (newPlayer == null && ++attempts <= playlist.tracks.size) {
             val uri = uriIterator.next()
+
+            if (!permissionManager.hasPersistablePermission(uri)) {
+                logd("URI sin permiso persistente: $uri")
+                permissionMissingUris.add(uri)
+                continue
+            }
+
             try {
-                newPlayer = mediaPlayer.let {
-                    if (it == null) {
-                        MediaPlayer.create(context, uri)
-                    } else try {
-                        it.reset()
-                        it.setDataSource(context, uri)
-                        it.prepare()
-                        it
+                if (mediaPlayer != null) {
+                    try {
+                        mediaPlayer?.reset()
+                        mediaPlayer?.setDataSource(context, uri)
+                        mediaPlayer?.prepare()
+                        newPlayer = mediaPlayer
                     } catch (e: IOException) {
                         logd("IOException al preparar $uri: ${e.message}")
-                        null
+                        mediaPlayer?.release()
+                        mediaPlayer = null
+                        val created = MediaPlayer.create(context, uri)
+                        if (created == null) {
+                            logd("MediaPlayer.create devolvió null para: $uri")
+                            ioErrorUris.add(uri)
+                            continue
+                        }
+                        newPlayer = created
                     } catch (e: SecurityException) {
-                        // --- PUNTO CLAVE: SecurityException indica problema de permisos ---
-                        // NO debe marcar el archivo como corrupto, solo como no accesible
                         logd("SecurityException al acceder a $uri: ${e.message}")
-                        hasPermissionError = true
-                        null
+                        permissionMissingUris.add(uri)
+                        continue
                     }
+                } else {
+                    val created = MediaPlayer.create(context, uri)
+                    if (created == null) {
+                        logd("MediaPlayer.create devolvió null para: $uri")
+                        ioErrorUris.add(uri)
+                        continue
+                    }
+                    newPlayer = created
                 }
             } catch (e: SecurityException) {
-                // Si MediaPlayer.create() lanza SecurityException (en lugar de devolver null)
                 logd("SecurityException en MediaPlayer.create($uri): ${e.message}")
-                hasPermissionError = true
-                newPlayer = null
-            } catch (e: IOException) {
-                logd("IOException en MediaPlayer.create($uri): ${e.message}")
-                newPlayer = null
+                permissionMissingUris.add(uri)
+                continue
             }
 
-            if (newPlayer == null) {
-                if (failedUris == null) {
-                    failedUris = mutableListOf(uri)
-                } else {
-                    failedUris.add(uri)
+            if (newPlayer != null) {
+                foundPlayableTrack = true
+                if (startImmediately) {
+                    newPlayer.start()
                 }
-            } else if (startImmediately) {
-                newPlayer.start()
             }
         }
 
-        // --- MEJORA CRÍTICA: Distinguir entre error de permisos y error de archivo ---
-        // Si el fallo fue por SecurityException, NO marcamos como "corrupto"
-        // porque el archivo físico está bien, solo falta el permiso.
-        // Si hubo errores pero no fueron de permisos, entonces es un problema real del archivo.
-        if (failedUris != null && !hasPermissionError) {
-            onPlaybackFailure(failedUris)
-        } else if (failedUris != null && hasPermissionError) {
-            // Solo logueamos el problema de permisos, no marcamos como corrupto
-            logd("Permisos insuficientes para ${failedUris.size} URI(s), reintentando más tarde")
+        hasPlayableTrack = foundPlayableTrack
+
+        if (ioErrorUris.isNotEmpty()) {
+            logd("Error de IO en ${ioErrorUris.size} URI(s)")
+            onPlaybackFailure(ioErrorUris)
         }
-        mediaPlayer = newPlayer
+
+        if (permissionMissingUris.isNotEmpty()) {
+            logd("URIs sin permiso persistente: ${permissionMissingUris.size}")
+            onMissingPermissions(permissionMissingUris)
+        }
+
+        if (!hasPlayableTrack) {
+            logd("No se encontraron pistas reproducibles")
+            mediaPlayer?.release()
+            mediaPlayer = null
+        } else if (newPlayer != null) {
+            mediaPlayer = newPlayer
+        }
     }
 
-    /**
-     * Set the receiver's volume, [MediaPlayer.isLooping] property, and
-     * [MediaPlayer.setOnCompletionListener] to their appropriate values
-     * to play the content of [playlist]. init must be called only once
-     * for each [ActivePlaylist].
-     */
     private fun MediaPlayer.initializeFor(playlist: ActivePlaylist) {
         setVolume(playlist.volume, playlist.volume)
         isLooping = playlist.tracks.size < 2
         boostVolume(playlist.volumeBoostDb)
         setOnCompletionListener(
             if (playlist.tracks.size < 2) null
-            else onCompletionListener)
+            else onCompletionListener
+        )
     }
 
     private fun MediaPlayer.boostVolume(dbBoost: Int) {
-        volumeBooster?.enabled = false
+        volumeBooster?.apply {
+            enabled = false
+            release()
+        }
         volumeBooster = if (dbBoost == 0) null else
             LoudnessEnhancer(audioSessionId).apply {
                 setTargetGain(dbBoost * 100)
                 enabled = true
             }
-    }
-}
-
-/**
- * A collection of [Player] instances.
- *
- * [PlayerMap] manages a collection of [Player] instances for a collection
- * of [ActivePlaylist]s. The collection of [Player]s is updated via the
- * method [update]. Whether or not the collection of players is empty can
- * be queried with the property [isEmpty].
- *
- * The playing/paused/stopped state can be set for all [Player]s at once
- * with the methods [play], [pause], and [stop]. The volume for individual
- * playlists can be set with the method [setPlayerVolume]. The method
- * [releaseAll] should be called before the PlayerMap is destroyed so that
- * all [Player] instances can be released first.
- *
- * @param context A [Context] instance. Note that the context instance
- *     will be held onto for the lifetime of the [PlayerSet].
- * @param onPlaybackFailure The callback that will be invoked
- *     when playback for the provided list of [Uri]s has failed
- */
-class PlayerMap(
-    private val context: Context,
-    private val onPlaybackFailure: (uris: List<Uri>) -> Unit,
-) {
-    private var playerMap: MutableMap<Long, Player> = hashMapOf()
-
-    val isEmpty get() = playerMap.isEmpty()
-
-    fun play() = playerMap.values.forEach(Player::play)
-    fun pause() = playerMap.values.forEach(Player::pause)
-    fun stop() = playerMap.values.forEach(Player::stop)
-
-    fun setPlayerVolume(playlistId: Long, volume: Float) =
-        playerMap[playlistId]?.setVolume(volume)
-
-    fun releaseAll() = playerMap.values.forEach(Player::release)
-
-    /** Update the PlayerSet with new [Player]s to match the provided [playlists].
-     * If [startPlaying] is true, playback will start immediately. Otherwise, the
-     * [Player]s will begin paused. */
-    fun update(playlists: Map<ActivePlaylistSummary, List<Uri>>, startPlaying: Boolean) {
-        val oldMap = playerMap
-        playerMap = HashMap(playlists.size)
-
-        for (playlist in playlists) {
-            val existingPlayer = oldMap
-                .remove(playlist.id)
-                ?.apply { update(playlist, startPlaying) }
-
-            playerMap[playlist.id] = existingPlayer ?:
-                Player(context, playlist, startPlaying, onPlaybackFailure)
-        }
-        oldMap.values.forEach(Player::release)
     }
 }

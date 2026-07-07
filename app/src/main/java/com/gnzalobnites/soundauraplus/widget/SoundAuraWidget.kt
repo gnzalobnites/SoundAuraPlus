@@ -10,6 +10,7 @@ import android.widget.RemoteViews
 import androidx.core.net.toUri
 import com.gnzalobnites.soundauraplus.MainActivity
 import com.gnzalobnites.soundauraplus.R
+import com.gnzalobnites.soundauraplus.widget.SoundAuraWidgetViews
 import com.gnzalobnites.soundauraplus.service.PlayerService
 
 class SoundAuraWidget : AppWidgetProvider() {

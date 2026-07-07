@@ -1,6 +1,8 @@
-/* This file is part of SoundAura, which is released under
- * the terms of the Apache License 2.0. See license.md in
- * the project's root directory to see the full license. */
+/*
+ * This file is part of SoundAura, which is released under the terms of the Apache
+ * License 2.0. See license.md in the project's root directory to see the full license.
+ */
+
 package com.gnzalobnites.soundauraplus.addbutton
 
 import android.Manifest
@@ -49,6 +51,7 @@ import com.gnzalobnites.soundauraplus.ui.bottomEndShape
 import com.gnzalobnites.soundauraplus.ui.bottomShape
 import com.gnzalobnites.soundauraplus.ui.bottomStartShape
 import com.gnzalobnites.soundauraplus.ui.minTouchTargetSize
+import com.gnzalobnites.soundauraplus.addbutton.SystemFileChooser
 
 @Composable private fun ColumnScope.AddButtonDialogButtons(
     state: AddButtonDialogState
@@ -73,42 +76,6 @@ import com.gnzalobnites.soundauraplus.ui.minTouchTargetSize
                 VerticalDivider()
         }
     }
-}
-
-/**
- * When [SystemFileChooser] enters the composition a system file picker
- * will be shown to allow the user to pick one or more files.
- *
- * @param fileTypeArgs An [Array] of [String]s that describes which
- *     file MIME types are allowed to be chosen
- * @param onFilesSelected The callback that will be invoked when one
- *     or more files are picked, represented in the [List] argument
- */
-@Composable fun SystemFileChooser(
-    fileTypeArgs: Array<String> = arrayOf("audio/*", "application/ogg"),
-    onFilesSelected: (List<Uri>) -> Unit,
-) {
-    val context = LocalContext.current
-    val launcher = rememberLauncherForActivityResult(
-        contract = ActivityResultContracts.OpenMultipleDocuments(),
-        onResult = { uris ->
-            // --- ADQUIRIR PERMISOS PERSISTENTES ---
-            // Esto es CRUCIAL para que los archivos sigan siendo accesibles después
-            // de reiniciar el teléfono o la aplicación.
-            val takeFlags = Intent.FLAG_GRANT_READ_URI_PERMISSION
-            for (uri in uris) {
-                try {
-                    context.contentResolver.takePersistableUriPermission(uri, takeFlags)
-                } catch (e: SecurityException) {
-                    // Algunos proveedores de contenido (ej. ciertas nubes) no soportan
-                    // permisos persistentes. En ese caso, ignoramos y el permiso será
-                    // temporal (válido solo para esta sesión).
-                }
-            }
-            onFilesSelected(uris)
-        }
-    )
-    LaunchedEffect(Unit) { launcher.launch(fileTypeArgs) }
 }
 
 @Composable private fun AccessAudioFilesPermissionRequester(onPermissionGranted: (Boolean) -> Unit) {
@@ -161,19 +128,16 @@ import com.gnzalobnites.soundauraplus.ui.minTouchTargetSize
                 is AddButtonDialogState.RequestStoragePermission -> {}
                 is AddButtonDialogState.AddIndividuallyOrAsPlaylistQuery -> {
                     Box(modifier = backgroundModifier.padding(vertical = 16.dp),
-                        // The vertical padding is set to match the TextField decoration box's
-                        // vertical padding. This reduces the amount that the dialog box height
-                        // has to be animated when switching between steps of the dialog.
                         contentAlignment = Alignment.CenterStart
                     ) {
                         Text(stringResource(state.textResId))
                     }
-                } is AddButtonDialogState.NamePreset -> {
+                }
+                is AddButtonDialogState.NamePreset -> {
                     NamingTextField(state, backgroundModifier)
-                } is AddButtonDialogState.NameTracks -> {
+                }
+                is AddButtonDialogState.NameTracks -> {
                     Column(backgroundModifier) {
-                        // We have to restrict the LazyColumn's height to prevent
-                        // a crash due to nested infinite height scrollables
                         val maxHeight = (LocalConfiguration.current.screenHeightDp * 2 / 3).dp
                         LazyColumn(
                             modifier = Modifier.heightIn(max = maxHeight),
@@ -191,11 +155,11 @@ import com.gnzalobnites.soundauraplus.ui.minTouchTargetSize
                         }
                         AnimatedValidatorMessage(state.message)
                     }
-                } is AddButtonDialogState.NamePlaylist -> {
+                }
+                is AddButtonDialogState.NamePlaylist -> {
                     NamingTextField(state, backgroundModifier)
-                } is AddButtonDialogState.PlaylistOptions -> {
-                    // PlaylistOptions already has its own horizontal padding, so we avoid
-                    // using backgroundModifier here to prevent doubling up on the padding
+                }
+                is AddButtonDialogState.PlaylistOptions -> {
                     Column(Modifier.background(MaterialTheme.colors.surface)) {
                         PlaylistOptionsView(
                             shuffleEnabled = state.shuffleEnabled,
@@ -203,7 +167,8 @@ import com.gnzalobnites.soundauraplus.ui.minTouchTargetSize
                             mutablePlaylist = state.mutablePlaylist,
                             onAddButtonClick = null)
                     }
-                } is AddButtonDialogState.RequestStoragePermissionExplanation -> {
+                }
+                is AddButtonDialogState.RequestStoragePermissionExplanation -> {
                     val context = LocalContext.current
                     Box(modifier = backgroundModifier.padding(bottom = 8.dp)) {
                         Text(state.text.resolve(context),
@@ -218,13 +183,17 @@ import com.gnzalobnites.soundauraplus.ui.minTouchTargetSize
 @Composable fun AddButtonDialogShower(state: AddButtonDialogState) {
     when (state) {
         is AddButtonDialogState.SelectingFiles -> {
-            SystemFileChooser { uris ->
+            // Usar SystemFileChooser de SystemFileChooser.kt
+            // Importante: este archivo debe existir con la implementacion correcta
+            SystemFileChooser(onFilesSelected = { uris ->
                 if (uris.isEmpty())
                     state.onDismissRequest()
                 else state.onFilesSelected(uris)
-            }
-        } is AddButtonDialogState.RequestStoragePermission -> {
+            })
+        }
+        is AddButtonDialogState.RequestStoragePermission -> {
             AccessAudioFilesPermissionRequester(state.onResult)
-        } else -> AddButtonSoundAuraDialogShower(state)
-   }
+        }
+        else -> AddButtonSoundAuraDialogShower(state)
+    }
 }

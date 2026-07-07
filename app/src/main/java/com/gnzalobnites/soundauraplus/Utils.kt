@@ -3,6 +3,7 @@
  * the project's root directory to see the full license. */
 package com.gnzalobnites.soundauraplus
 
+import com.gnzalobnites.soundauraplus.LocalWindowSizeClass
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.calculateEndPadding

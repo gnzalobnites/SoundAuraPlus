@@ -22,7 +22,7 @@ class RemoteViewsFactory(
     override fun onCreate() {
         // Obtener el PlaylistDao desde la aplicación
         val application = context.applicationContext as SoundAuraApplication
-        playlistDao = application.database.playlistDao()
+        playlistDao = application.db.playlistDao()
     }
 
     override fun onDataSetChanged() {

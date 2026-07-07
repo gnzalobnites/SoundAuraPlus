@@ -52,5 +52,6 @@ codigo.sh
 .idea/
 *.iml
 
+fix.py
 
 .cg/

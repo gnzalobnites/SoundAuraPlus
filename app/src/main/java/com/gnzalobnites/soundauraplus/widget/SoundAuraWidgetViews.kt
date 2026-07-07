@@ -21,14 +21,12 @@ object SoundAuraWidgetViews {
         val isPlaying = PlayerService.playbackState == PlaybackStateCompat.STATE_PLAYING
         val isPaused = PlayerService.playbackState == PlaybackStateCompat.STATE_PAUSED
 
-        // Actualizar icono de play/pause
         val playPauseIcon = when {
             isPlaying -> R.drawable.ic_baseline_pause_24
             else -> R.drawable.ic_baseline_play_24
         }
         views.setImageViewResource(R.id.widget_play_pause, playPauseIcon)
 
-        // Actualizar texto de estado
         val statusText = when (PlayerService.playbackState) {
             PlaybackStateCompat.STATE_PLAYING -> context.getString(R.string.playing)
             PlaybackStateCompat.STATE_PAUSED -> context.getString(R.string.paused)
@@ -36,7 +34,6 @@ object SoundAuraWidgetViews {
         }
         views.setTextViewText(R.id.widget_status, statusText)
 
-        // Mostrar tiempo restante del timer si existe
         val stopTime = PlayerService.binder?.stopTime
         if (stopTime != null && isPlaying) {
             val remaining = Duration.between(Instant.now(), stopTime)
@@ -58,21 +55,20 @@ object SoundAuraWidgetViews {
         }
         views.setTextViewText(R.id.widget_playlist_name, playlistName)
 
-        // Actualizar visibilidad de botones según estado
         val showStopButton = PlayerService.playbackState != PlaybackStateCompat.STATE_STOPPED
         views.setViewVisibility(R.id.widget_stop,
             if (showStopButton) android.view.View.VISIBLE else android.view.View.GONE)
 
-        // Usar notifyAppWidgetViewDataChanged para actualizar la lista
         val componentName = ComponentName(context, SoundAuraWidget::class.java)
         val appWidgetIds = appWidgetManager.getAppWidgetIds(componentName)
         appWidgetManager.notifyAppWidgetViewDataChanged(appWidgetIds, R.id.widget_playlist_list)
     }
 
     private fun formatDuration(duration: Duration): String {
-        val hours = duration.toHours()
-        val minutes = duration.toMinutesPart()
-        val seconds = duration.toSecondsPart()
+        val totalSeconds = duration.seconds
+        val hours = totalSeconds / 3600
+        val minutes = (totalSeconds % 3600) / 60
+        val seconds = totalSeconds % 60
 
         return when {
             hours > 0 -> "%d:%02d:%02d".format(hours, minutes, seconds)

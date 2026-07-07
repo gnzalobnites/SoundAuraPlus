@@ -3,6 +3,7 @@
  * the project's root directory to see the full license. */
 package com.gnzalobnites.soundauraplus
 
+import com.gnzalobnites.soundauraplus.BuildConfig
 import android.os.Bundle
 import android.view.KeyEvent
 import androidx.activity.ComponentActivity
