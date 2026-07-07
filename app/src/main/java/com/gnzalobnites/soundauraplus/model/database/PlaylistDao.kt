@@ -1,4 +1,6 @@
-/* ... (resto de los imports y anotaciones superiores) ... */
+/* This file is part of SoundAura, which is released under
+ * the terms of the Apache License 2.0. See license.md in
+ * the project's root directory to see the full license. */
 package com.gnzalobnites.soundauraplus.model.database
 
 import android.net.Uri
@@ -53,11 +55,11 @@ private const val librarySelectWithFilter =
     protected abstract suspend fun insertPlaylistTracks(playlistTracks: List<PlaylistTrack>)
 
     /**
-     * Insert a single [Playlist] whose [Playlist.name] and [Playlist.shuffle]
-     * vales will be equal to [playlistName] and [shuffle], respectively. The
-     * [Uri]s in [tracks] will be added as the contents of the playlist.
+     * Insertar un único [Playlist] cuyos valores [Playlist.name] y [Playlist.shuffle]
+     * serán iguales a [playlistName] y [shuffle], respectivamente. Los [Uri]s en
+     * [tracks] se añadirán como contenido de la playlist.
      *
-     * @return The [Long] id of the newly inserted [Playlist]
+     * @return El [Long] id del [Playlist] recién insertado
      * */
     @Transaction
     open suspend fun insertPlaylist(
@@ -76,16 +78,16 @@ private const val librarySelectWithFilter =
     }
 
     /**
-     * Attempt to add multiple single-track playlists. Each value in
-     * [names] will be used as a name for a new [Playlist], while the
-     * [Uri] with the same index in [uris] will be used as that [Playlist]'s
-     * single track. The [Playlist.shuffle] value for the new [Playlist]s
-     * will be the default value (i.e. false) due to shuffle having no
-     * meaning for single-track playlists.
+     * Intentar añadir múltiples playlists de una sola pista. Cada valor en
+     * [names] se usará como nombre para un nuevo [Playlist], mientras que el
+     * [Uri] con el mismo índice en [uris] se usará como la única pista de ese
+     * [Playlist]. El valor [Playlist.shuffle] para los nuevos [Playlist]s
+     * será el valor predeterminado (es decir, false) ya que shuffle no tiene
+     * significado para playlists de una sola pista.
      *
-     * If the [Uri]s in [uris] that are not already a part of any existing
-     * [Playlist]s is already known, it can be passed in to the parameter
-     * [newUris] to prevent the database inserting already existing tracks.
+     * Si los [Uri]s en [uris] que ya no son parte de ningún [Playlist] existente
+     * ya se conocen, se pueden pasar en el parámetro [newUris] para evitar que
+     * la base de datos inserte pistas ya existentes.
      */
     @Transaction
     open suspend fun insertSingleTrackPlaylists(
@@ -105,7 +107,7 @@ private const val librarySelectWithFilter =
         insertPlaylistTracks(playlistTracks)
     }
 
-    /** Delete the playlist identified by [id] from the database. */
+    /** Eliminar la playlist identificada por [id] de la base de datos. */
     @Query("DELETE FROM playlist WHERE id = :id")
     protected abstract suspend fun deletePlaylistName(id: Long)
 
@@ -115,14 +117,14 @@ private const val librarySelectWithFilter =
     @Query("DELETE FROM track WHERE uri IN (:uris)")
     protected abstract suspend fun deleteTracks(uris: List<Uri>)
 
-    /** Delete the [Playlist] identified by [id] along with its contents.
-     * @return the [List] of [Uri]s that are no longer a part of any playlist */
+    /** Eliminar el [Playlist] identificado por [id] junto con su contenido.
+     * @return la [List] de [Uri]s que ya no son parte de ninguna playlist */
     @Transaction
     open suspend fun deletePlaylist(id: Long): List<Uri> {
         val removableTracks = getUniqueUris(id)
         deletePlaylistName(id)
-        // playlistTrack.playlistName has an 'on delete: cascade' policy,
-        // so the playlistTrack rows don't need to be deleted manually
+        // playlistTrack.playlistName tiene una política 'on delete: cascade',
+        // por lo que las filas de playlistTrack no necesitan eliminarse manualmente
         deleteTracks(removableTracks)
         return removableTracks
     }
@@ -134,18 +136,19 @@ private const val librarySelectWithFilter =
     abstract suspend fun setPlaylistShuffle(id: Long, shuffle: Boolean)
 
     /**
-     * Set the playlist identified by [playlistId] to have a [Playlist.shuffle]
-     * value equal to [shuffle], and overwrite its tracks to be equal to [tracks].
+     * Establecer la playlist identificada por [playlistId] para que tenga un valor
+     * [Playlist.shuffle] igual a [shuffle], y sobrescribir sus pistas para que
+     * sean iguales a [tracks].
      *
-     * If the [Uri]s in [tracks] that are not already in any other playlists
-     * has already been obtained, it can be passed as [newUris] to prevent the
-     * database from needing to insert already existing tracks. Likewise, if
-     * the [Uri]s that were previously a part of the playlist, but are not in
-     * the new [tracks] and are not in any other playlist has already been
-     * obtained, it can be passed as [removableUris] to prevent the database
-     * from needing to recalculate the [Uri]s that are no longer needed.
+     * Si los [Uri]s en [tracks] que no están ya en otras playlists ya se han
+     * obtenido, se pueden pasar como [newUris] para evitar que la base de datos
+     * necesite insertar pistas ya existentes. Del mismo modo, si los [Uri]s que
+     * antes formaban parte de la playlist, pero no están en las nuevas [tracks]
+     * y no están en ninguna otra playlist ya se han obtenido, se pueden pasar
+     * como [removableUris] para evitar que la base de datos recalcule los [Uri]s
+     * que ya no son necesarios.
      *
-     * @return The [List] of [Uri]s that are no longer in any [Playlist] after the change.
+     * @return La [List] de [Uri]s que ya no están en ninguna [Playlist] después del cambio.
      */
     @Transaction
     open suspend fun setPlaylistShuffleAndTracks(
@@ -168,15 +171,15 @@ private const val librarySelectWithFilter =
         return removedUris
     }
 
-    /** Return the track uris of the [Playlist] identified by
-     * [playlistId] that are not in any other [Playlist]s. */
+    /** Devuelve los uris de las pistas del [Playlist] identificado por
+     * [playlistId] que no están en ningún otro [Playlist]. */
     @Query("SELECT trackUri FROM playlistTrack " +
            "GROUP BY trackUri HAVING COUNT(playlistId) = 1 " +
                              "AND playlistId = :playlistId")
     protected abstract suspend fun getUniqueUris(playlistId: Long): List<Uri>
 
-    /** Return the track uris of the [Playlist] identified by [playlistId]
-     * that are not in any other [Playlist]s and are not in [exceptions]. */
+    /** Devuelve los uris de las pistas del [Playlist] identificado por [playlistId]
+     * que no están en ningún otro [Playlist] y no están en [exceptions]. */
     @Query("SELECT trackUri FROM playlistTrack " +
            "WHERE trackUri NOT IN (:exceptions) " +
            "GROUP BY trackUri HAVING COUNT(playlistId) = 1 " +
@@ -187,8 +190,8 @@ private const val librarySelectWithFilter =
     protected abstract suspend fun filterNewUris(query: SupportSQLiteQuery): List<Uri>
 
     suspend fun filterNewUris(tracks: List<Uri>): List<Uri> {
-        // The following query requires parentheses around each argument. This
-        // is not supported by Room, so the query must be made manually.
+        // La siguiente consulta requiere paréntesis alrededor de cada argumento.
+        // Room no lo soporta, por lo que la consulta debe hacerse manualmente.
         val query = StringBuilder()
             .append("WITH newTrack(uri) AS (VALUES ")
             .apply {
@@ -203,7 +206,7 @@ private const val librarySelectWithFilter =
         return filterNewUris(SimpleSQLiteQuery(query, args))
     }
 
-    /** Return whether or not a [Playlist] whose name matches [name] exists. */
+    /** Devuelve si existe un [Playlist] cuyo nombre coincida con [name]. */
     @Query("SELECT EXISTS(SELECT name FROM playlist WHERE name = :name)")
     abstract suspend fun exists(name: String?): Boolean
 
@@ -246,9 +249,9 @@ private const val librarySelectWithFilter =
     @Query("SELECT NOT EXISTS(SELECT 1 FROM playlist WHERE isActive)")
     abstract fun getNoPlaylistsAreActive(): Flow<Boolean>
 
-    /** Return a [Flow] that updates with a [Map] of each active
-     * [Playlist] (represented as an [ActivePlaylistSummary]
-     * mapped to its tracks (represented as a [List] of [Uri]s). */
+    /** Devuelve un [Flow] que se actualiza con un [Map] de cada [Playlist] activo
+     * (representado como un [ActivePlaylistSummary] mapeado a sus pistas
+     * (representadas como una [List] de [Uri]s). */
     @MapInfo(valueColumn = "trackUri")
     @Query("SELECT id, shuffle, volume, volumeBoostDb, trackUri " +
            "FROM playlist " +
@@ -264,30 +267,26 @@ private const val librarySelectWithFilter =
            "WHERE playlistId = :id ORDER by playlistOrder")
     abstract suspend fun getPlaylistTracks(id: Long): List<Track>
 
-    /** Rename the [Playlist] identified by [id] to [newName]. */
+    /** Renombrar el [Playlist] identificado por [id] a [newName]. */
     @Query("UPDATE playlist SET name = :newName WHERE id = :id")
     abstract suspend fun rename(id: Long, newName: String)
 
-    /** Toggle the [Playlist.isActive] field of the [Playlist] identified by [id]. */
+    /** Alternar el campo [Playlist.isActive] del [Playlist] identificado por [id]. */
     @Query("UPDATE playlist set isActive = 1 - isActive WHERE id = :id")
     abstract suspend fun toggleIsActive(id: Long)
 
-    /** Set the [Playlist.volume] field of the [Playlist] identified by [id]. */
+    /** Establecer el campo [Playlist.volume] del [Playlist] identificado por [id]. */
     @Query("UPDATE playlist SET volume = :volume WHERE id = :id")
     abstract suspend fun setVolume(id: Long, volume: Float)
 
-    /** Set the [Playlist.volumeBoostDb] field of the [Playlist identified by [id]. */
+    /** Establecer el campo [Playlist.volumeBoostDb] del [Playlist] identificado por [id]. */
     @Query("UPDATE playlist SET volumeBoostDb = :dbBoost WHERE id = :id")
     abstract suspend fun setVolumeBoostDb(id: Long, dbBoost: Int)
 
     @Query("UPDATE track SET hasError = 1 WHERE uri in (:uris)")
     abstract suspend fun setTracksHaveError(uris: List<Uri>)
 
-    // --- NUEVO: Método para obtener todos los tracks (para el servicio de recuperación) ---
-    @Query("SELECT * FROM track")
-    abstract suspend fun getAllTracks(): List<Track>
-
-    // --- MÉTODO PARA EL WIDGET (ya lo tenías esbozado, ahora completo) ---
+    // --- MÉTODO PARA EL WIDGET ---
     @Query("""
         SELECT id, name, shuffle, isActive,
         COUNT(playlistId) = 1 AS isSingleTrack,
@@ -300,5 +299,4 @@ private const val librarySelectWithFilter =
         ORDER BY isActive DESC, name COLLATE NOCASE ASC
         """)
     abstract suspend fun getPlaylistsForWidget(): List<LibraryPlaylist>
-
 }

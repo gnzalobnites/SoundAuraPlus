@@ -12,8 +12,8 @@ import com.gnzalobnites.soundauraplus.model.database.newPlaylistNameValidator
 import kotlinx.coroutines.CoroutineScope
 import javax.inject.Inject
 
-/** A container of methods that adds playlists (single track
- * or multi-track) to the app's library of playlists. */
+/** Un contenedor de métodos que añade playlists (de una o varias pistas)
+ * a la biblioteca de playlists de la app. */
 class AddToLibraryUseCase(
     private val permissionHandler: UriPermissionHandler,
     private val dao: PlaylistDao,
@@ -28,14 +28,14 @@ class AddToLibraryUseCase(
         initialTrackNames: List<String>
     ) = TrackNamesValidator(dao, scope, initialTrackNames)
 
-    /** The two subtypes, [Success] and [Failure], represent the possible
-     * results for calls to [addSingleTrackPlaylists] or [addPlaylist]. */
+    /** Los dos subtipos, [Success] y [Failure], representan los posibles
+     * resultados para llamadas a [addSingleTrackPlaylists] o [addPlaylist]. */
     sealed class Result {
-        /** The operation succeeded. */
+        /** La operación tuvo éxito. */
         data object Success: Result()
 
-        /** The operation failed. The properties [permissionsUsed] and
-         * [permissionAllowance] can help explain the reason for the failure. */
+        /** La operación falló. Las propiedades [permissionsUsed] y
+         * [permissionAllowance] pueden ayudar a explicar la razón del fallo. */
         data class Failure(
             val permissionsUsed: Int,
             val permissionAllowance: Int
@@ -43,11 +43,11 @@ class AddToLibraryUseCase(
     }
 
     /**
-     * Attempt to add multiple single-track playlists. Each value in [names]
-     * will be used as a name for a new [Playlist], while the [Uri] with the
-     * same index in [uris] will be used as that [Playlist]'s single track.
+     * Intenta añadir múltiples playlists de una sola pista. Cada valor en [names]
+     * se usará como nombre para un nuevo [Playlist], mientras que el [Uri] con
+     * el mismo índice en [uris] se usará como la única pista de ese [Playlist].
      *
-     * @return The [Result] of the operation
+     * @return El [Result] de la operación
      */
     suspend fun addSingleTrackPlaylists(
         names: List<String>,
@@ -55,6 +55,8 @@ class AddToLibraryUseCase(
     ): Result {
         assert(names.size == uris.size)
         val newUris = dao.filterNewUris(uris)
+        
+        // IMPORTANTE: Adquirir permisos persistentes para los nuevos URIs
         val succeeded = permissionHandler.acquirePermissionsFor(newUris)
 
         return if (succeeded) {
@@ -71,13 +73,12 @@ class AddToLibraryUseCase(
     ) = newPlaylistNameValidator(dao, scope, initialName)
 
     /**
-     * Attempt to add a playlist with the given [name] and [shuffle] values and
-     * with a track list equal to [tracks]. If non enough file permissions are
-     * available to add all of the new playlist's tracks, the operation will
-     * fail and the number of extra permissions that would be needed to succeed
-     * will be returned.
+     * Intenta añadir una playlist con los valores [name] y [shuffle] dados y
+     * con una lista de pistas igual a [tracks]. Si no hay suficientes permisos
+     * de archivo para añadir todas las pistas de la nueva playlist, la operación
+     * fallará y se devolverá el número de permisos extra que se necesitarían.
      *
-     * @return The [Result] of the operation
+     * @return El [Result] de la operación
      */
     suspend fun addPlaylist(
         name: String,
@@ -86,6 +87,8 @@ class AddToLibraryUseCase(
         trackUris: List<Uri> = tracks.map(Track::uri)
     ): Result {
         val newUris = dao.filterNewUris(trackUris)
+        
+        // IMPORTANTE: Adquirir permisos persistentes para los nuevos URIs
         val succeeded = permissionHandler.acquirePermissionsFor(newUris)
 
         return if (succeeded) {

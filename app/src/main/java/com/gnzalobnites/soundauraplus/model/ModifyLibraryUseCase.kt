@@ -12,7 +12,7 @@ import com.gnzalobnites.soundauraplus.model.database.playlistRenameValidator
 import kotlinx.coroutines.CoroutineScope
 import javax.inject.Inject
 
-/** A container of methods that modify the app's library of playlists. */
+/** Un contenedor de métodos que modifican la biblioteca de playlists de la app. */
 class ModifyLibraryUseCase(
     private val permissionHandler: UriPermissionHandler,
     private val dao: PlaylistDao,
@@ -31,10 +31,10 @@ class ModifyLibraryUseCase(
     }
 
     /**
-     * Return a [ValidatedNamingState] that can be used to rename the
-     * playlist whose old name matches [oldName]. [onFinished] will be
-     * called when the renaming ends successfully or otherwise, and
-     * can be used, e.g., to dismiss a rename dialog.
+     * Devuelve un [ValidatedNamingState] que se puede usar para renombrar la
+     * playlist cuyo nombre antiguo coincide con [oldName]. Se llamará a [onFinished]
+     * cuando el renombrado termine con éxito o no, y se puede usar, por ejemplo,
+     * para descartar un diálogo de renombrado.
      */
     fun renameState(
         playlistId: Long,
@@ -50,16 +50,16 @@ class ModifyLibraryUseCase(
             onFinished()
         })
 
-    /** The two subtypes, [Success] and [NewTracksNotAdded], represent
-     * the possible results for calls to [setPlaylistShuffleAndTracks]. */
+    /** Los dos subtipos, [Success] y [NewTracksNotAdded], representan
+     * los posibles resultados para llamadas a [setPlaylistShuffleAndTracks]. */
     sealed class Result {
-        /** The operation succeeded. */
+        /** La operación tuvo éxito. */
         data object Success: Result()
 
-        /** The shuffle was modified, and the to-be-removed tracks were removed,
-         * but the new tracks were not added. The properties [permissionsUsed]
-         * and [permissionAllowance] can help explain the reason for the failure.
-         * The uris of the tracks that could not be added are provided in [unaddedUris].*/
+        /** Se modificó el shuffle, y se eliminaron las pistas a eliminar,
+         * pero no se añadieron las nuevas pistas. Las propiedades [permissionsUsed]
+         * y [permissionAllowance] pueden ayudar a explicar la razón del fallo.
+         * Los uris de las pistas que no se pudieron añadir se proporcionan en [unaddedUris].*/
         data class NewTracksNotAdded(
             val unaddedUris: List<Uri>,
             val permissionsUsed: Int,
@@ -68,14 +68,12 @@ class ModifyLibraryUseCase(
     }
 
     /**
-     * Update the [Playlist] identified by [playlistId] to have a shuffle on/
-     * off state matching [shuffle], and to have a track list matching [tracks].
-     * While the playlist's shuffle state will always be set, the track list
-     * update operation can fail if the [UriPermissionHandler] in use indicates
-     * that permissions could not be obtained for all of the new tracks (e.g.
-     * if the permitted permission allowance has been used up). In this case,
-     * an explanatory message will be displayed using the [MessageHandler]
-     * provided in the constructor.
+     * Actualiza el [Playlist] identificado por [playlistId] para que tenga un
+     * estado de shuffle activado/desactivado coincidente con [shuffle], y una
+     * lista de pistas coincidente con [tracks]. Mientras que el estado de shuffle
+     * de la playlist siempre se establecerá, la operación de actualización de la
+     * lista de pistas puede fallar si el [UriPermissionHandler] en uso indica
+     * que no se pudieron obtener permisos para todas las nuevas pistas.
      */
     suspend fun setPlaylistShuffleAndTracks(
         playlistId: Long,
@@ -87,6 +85,7 @@ class ModifyLibraryUseCase(
         val releasableUris = dao.getUniqueUrisNotIn(uris, playlistId)
         permissionHandler.releasePermissionsFor(releasableUris)
 
+        // IMPORTANTE: Adquirir permisos persistentes para los nuevos URIs
         val acquiredPermissions = permissionHandler.acquirePermissionsFor(newUris)
         return if (acquiredPermissions) {
             dao.setPlaylistShuffleAndTracks(
@@ -110,9 +109,9 @@ class ModifyLibraryUseCase(
         }
     }
 
-    /** Set the [Playlist] identified by [playlistId]'s volume boost property
-     * to [volumeBoostDb]. Values of [volumeBoostDb] will be coerced into the
-     * supported range of [0, 30]. */
+    /** Establece la propiedad de boost de volumen del [Playlist] identificado
+     * por [playlistId] a [volumeBoostDb]. Los valores de [volumeBoostDb] se
+     * forzarán al rango soportado de [0, 30]. */
     suspend fun setPlaylistVolumeBoostDb(
         playlistId: Long,
         volumeBoostDb: Int
@@ -120,7 +119,7 @@ class ModifyLibraryUseCase(
         dao.setVolumeBoostDb(playlistId, volumeBoostDb.coerceIn(0, 30))
     }
 
-    /** Remove the [Playlist] identified by [id]. */
+    /** Elimina el [Playlist] identificado por [id]. */
     suspend fun removePlaylist(id: Long) {
         val unusedTracks = dao.deletePlaylist(id)
         permissionHandler.releasePermissionsFor(unusedTracks)

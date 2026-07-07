@@ -1,4 +1,7 @@
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
+import java.util.Properties
+import java.io.FileInputStream
+
 
 plugins {
     id("com.android.application")
@@ -11,6 +14,13 @@ plugins {
 }
 
 kotlin.compilerOptions.jvmTarget = JvmTarget.fromTarget("21")
+
+// 1. Leer el archivo local.properties
+val keystorePropertiesFile = rootProject.file("local.properties")
+val keystoreProperties = Properties()
+if (keystorePropertiesFile.exists()) {
+    keystoreProperties.load(FileInputStream(keystorePropertiesFile))
+}
 
 android {
     namespace = "com.gnzalobnites.soundauraplus"
@@ -26,6 +36,16 @@ android {
         versionName = "1.0"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
+    
+    signingConfigs {
+        create("release") {
+            keyAlias = keystoreProperties["key.alias"] as String?
+            keyPassword = keystoreProperties["key.password"] as String?
+            storeFile = keystoreProperties["keystore.path"]?.let { file(it) }
+            storePassword = keystoreProperties["keystore.password"] as String?
+        }
+    }
+    
     buildTypes {
         debug {
             applicationIdSuffix = ".debug"
@@ -34,6 +54,7 @@ android {
             isDebuggable = true
         }
         release {
+        	signingConfig = signingConfigs.getByName("release")
             isMinifyEnabled = false
             isShrinkResources = false
             isDebuggable = false

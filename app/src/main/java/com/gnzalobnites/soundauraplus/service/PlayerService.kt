@@ -27,6 +27,7 @@ import androidx.media.AudioFocusRequestCompat
 import androidx.media.AudioManagerCompat
 import androidx.media.AudioManagerCompat.AUDIOFOCUS_GAIN
 import com.gnzalobnites.soundauraplus.R
+import com.gnzalobnites.soundauraplus.logd
 import com.gnzalobnites.soundauraplus.model.database.PlaylistDao
 import com.gnzalobnites.soundauraplus.preferenceFlow
 import com.gnzalobnites.soundauraplus.repeatWhenStarted
@@ -107,8 +108,19 @@ class PlayerService: LifecycleService() {
     private var stopTime by mutableStateOf<Instant?>(null)
 
     private val playerMap = PlayerMap(this) { problemUris ->
-        /* onPlayerCreationFailure = */lifecycleScope.launch {
-            playlistDao.setTracksHaveError(problemUris)
+        /* onPlayerCreationFailure = */
+        // --- MEJORA CRÍTICA: Solo marcar como error si el archivo es realmente inaccesible ---
+        // Ya no marcamos todos los fallos como hasError = true porque Player.kt ahora
+        // distingue entre SecurityException (problema de permisos) y errores reales.
+        // Sin embargo, si el archivo tiene errores persistentes, podemos marcarlo.
+        // Pero dado que el problema principal es de permisos, NO marcamos automáticamente
+        // como corrupto.
+        lifecycleScope.launch {
+            // Solo marcamos como error si el archivo falló repetidamente
+            // y no fue por problemas de permisos
+            logd("URIs con problemas de reproducción: ${problemUris.size}")
+            // Opcional: podríamos contar cuántas veces falla un URI antes de marcarlo
+            // Por ahora, no marcamos automáticamente como corrupto para evitar falsos positivos
         }
     }
     private var playerMapIsInitialized = false

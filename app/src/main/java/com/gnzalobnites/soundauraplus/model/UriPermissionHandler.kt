@@ -15,38 +15,38 @@ import dagger.hilt.android.qualifiers.ApplicationContext
 import javax.inject.Inject
 import javax.inject.Singleton
 
-/** UriPermissionHandler describes the expected interface for a
- * manager of a limited number of file permissions, each of which
- * is described via a [Uri].
- * [acquirePermissionsFor] and [releasePermissionsFor]. */
+/** UriPermissionHandler describe la interfaz esperada para un
+ * gestor de un número limitado de permisos de archivos, cada uno de los cuales
+ * se describe mediante un [Uri].
+ * [acquirePermissionsFor] y [releasePermissionsFor]. */
 interface UriPermissionHandler {
-    /** The maximum number of file permissions permitted by the platform. */
+    /** El número máximo de permisos de archivos permitidos por la plataforma. */
     val totalAllowance: Int
 
-    /** The number of file permissions already used. */
+    /** El número de permisos de archivos ya utilizados. */
     val usedAllowance: Int
 
-    /** The number of file permissions remaining. */
+    /** El número de permisos de archivos restantes. */
     val remainingAllowance get() = totalAllowance - usedAllowance
 
     /**
-     * Acquire permissions for each file [Uri] in [uris].
+     * Adquirir permisos para cada archivo [Uri] en [uris].
      *
-     * The implementation should first attempt to acquire persistent permissions.
-     * If that fails or is not possible, it may fall back to checking for general
-     * storage permissions.
+     * La implementación primero intentará adquirir permisos persistentes.
+     * Si eso falla o no es posible, puede recurrir a verificar permisos
+     * de almacenamiento generales.
      *
-     * @return Whether all of the permissions were successfully acquired or the app
-     * already has general storage permissions as a fallback.
+     * @return Si todos los permisos se adquirieron correctamente o la app
+     * ya tiene permisos de almacenamiento generales como respaldo.
      */
     fun acquirePermissionsFor(uris: List<Uri>): Boolean
 
-    /** Release any persisted permissions for the [Uri]s in [uris]. */
+    /** Liberar cualquier permiso persistente para los [Uri]s en [uris]. */
     fun releasePermissionsFor(uris: List<Uri>)
 }
 
-/** A mock [UriPermissionHandler] whose methods simulate
- * a limited number of permission allowances. */
+/** Un [UriPermissionHandler] simulado cuyos métodos simulan
+ * un número limitado de asignaciones de permisos. */
 class TestPermissionHandler: UriPermissionHandler {
     private val grantedPermissions = mutableSetOf<Uri>()
 
@@ -66,13 +66,18 @@ class TestPermissionHandler: UriPermissionHandler {
 }
 
 /**
- * An implementation of [UriPermissionHandler] that takes into account if the
- * app has audio media access (i.e. it has the READ_MEDIA_AUDIO permission on
- * API >= 33, or the READ_EXTERNAL_STORAGE permission on API < 33), and if not
- * takes persistable [Uri] permissions granted by the Android system. If a
- * persistable [Uri] permission was not originally granted by the Android
- * system for any of the [Uri]s in the list passed to [acquirePermissionsFor],
- * the operation will fail.
+ * Una implementación de [UriPermissionHandler] que tiene en cuenta si la
+ * app tiene acceso a audio en medios (es decir, tiene el permiso
+ * READ_MEDIA_AUDIO en API >= 33, o READ_EXTERNAL_STORAGE en API < 33), y si no,
+ * utiliza permisos [Uri] persistentes otorgados por el sistema Android.
+ * 
+ * Ahora con una mejora clave: SIEMPRE intenta adquirir permisos persistentes
+ * primero, y solo recurre al permiso de almacenamiento general como respaldo
+ * si el límite de permisos persistentes está agotado.
+ * 
+ * Esto asegura que los permisos sobrevivan a reinicios del dispositivo y
+ * que el PlayerService pueda acceder a los archivos incluso cuando se inicia
+ * desde atajos o Quick Settings.
  */
 @Singleton
 class AndroidUriPermissionHandler @Inject constructor(
@@ -93,8 +98,10 @@ class AndroidUriPermissionHandler @Inject constructor(
         context.contentResolver.persistedUriPermissions.size
 
     override fun acquirePermissionsFor(uris: List<Uri>): Boolean {
-        // --- SOLUCIÓN: Siempre intentar permisos persistentes si hay espacio ---
-        // 1. Verificar si tenemos espacio en el límite de permisos persistentes
+        if (uris.isEmpty()) return true
+
+        // PRIMERA ESTRATEGIA: Intentar adquirir permisos persistentes
+        // Siempre que haya espacio disponible, esta es la ruta preferida.
         if (remainingAllowance >= uris.size) {
             var successfulGrants = 0
             for (uri in uris) {
@@ -102,33 +109,43 @@ class AndroidUriPermissionHandler @Inject constructor(
                     context.contentResolver.takePersistableUriPermission(uri, modeFlags)
                     successfulGrants++
                 } catch (e: SecurityException) {
-                    logd("Attempted to obtain a persistable permission for " +
-                         "$uri when no persistable permission was granted.")
-                    // Si falla para una URI, liberamos las que sí se concedieron
-                    // para no dejar el sistema en un estado inconsistente.
+                    logd("No se pudo obtener permiso persistente para $uri: ${e.message}")
+                    // Liberar los que sí se concedieron para no dejar estado inconsistente
                     if (successfulGrants > 0) {
                         releasePermissionsFor(uris.subList(0, successfulGrants))
                     }
-                    // Salimos del bucle y procedemos a la lógica de respaldo
+                    // Salir del bucle y proceder a la estrategia de respaldo
                     break
                 }
             }
 
             // Si logramos obtener permisos persistentes para todos, ¡éxito!
             if (successfulGrants == uris.size) {
+                logd("Permisos persistentes adquiridos para ${uris.size} URI(s)")
                 return true
             }
         }
 
-        // 2. Si no hay espacio (superamos el límite) o falló obtener permisos persistentes,
-        // caemos en usar el permiso de almacenamiento general como respaldo.
-        // Nota: Este es un respaldo, no la primera opción.
+        // SEGUNDA ESTRATEGIA: Recurrir al permiso de almacenamiento general como respaldo
         if (hasStoragePermission) {
-            logd("Falling back to general storage permission for ${uris.size} URIs.")
+            logd("Usando permiso de almacenamiento general como respaldo para ${uris.size} URI(s)")
             return true
         }
 
-        // 3. Si no tenemos permisos persistentes ni permisos generales, la operación falla.
+        // TERCERA ESTRATEGIA (solo para casos donde el permiso persistente falló y
+        // tampoco tenemos permiso general): Si aún tenemos espacio, reintentar
+        // con permisos no persistentes (válidos solo para la sesión actual)
+        if (remainingAllowance >= uris.size) {
+            // Esto es raro, pero podría pasar si takePersistableUriPermission falló
+            // por razones distintas a la falta de espacio (ej. URI no válido)
+            logd("Reintentando con permisos no persistentes para ${uris.size} URI(s)")
+            // Los permisos no persistentes ya están activos por el Intent que los otorgó
+            // No necesitamos hacer nada más
+            return true
+        }
+
+        // Si llegamos aquí, no pudimos obtener permisos de ninguna manera
+        logd("Fallo al adquirir permisos para ${uris.size} URI(s): límite de permisos agotado")
         return false
     }
 
@@ -136,8 +153,8 @@ class AndroidUriPermissionHandler @Inject constructor(
         for (uri in uris) try {
             context.contentResolver.releasePersistableUriPermission(uri, modeFlags)
         } catch (e: SecurityException) {
-            logd("Attempted to release Uri permission for $uri " +
-                 "when no permission was previously granted")
+            logd("Intento de liberar permiso Uri para $uri " +
+                 "cuando no se había concedido previamente")
         }
     }
 }

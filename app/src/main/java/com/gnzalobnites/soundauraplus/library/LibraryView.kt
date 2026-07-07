@@ -3,6 +3,7 @@
  * the project's root directory to see the full license. */
 package com.gnzalobnites.soundauraplus.library
 
+import android.content.Context
 import androidx.compose.animation.Crossfade
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.layout.Arrangement
@@ -48,6 +49,7 @@ import com.gnzalobnites.soundauraplus.model.database.Track
 import com.gnzalobnites.soundauraplus.screenSizeBasedHorizontalPadding
 import com.gnzalobnites.soundauraplus.ui.tweenDuration
 import dagger.hilt.android.lifecycle.HiltViewModel
+import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.collections.immutable.ImmutableList
 import kotlinx.coroutines.plus
 import kotlinx.coroutines.withContext
@@ -147,6 +149,7 @@ sealed class LibraryState {
     private val searchQueryState: SearchQueryState,
     private val messageHandler: MessageHandler,
     playbackState: PlaybackState,
+    @ApplicationContext private val context: Context, // Inyectado para usar en FileChooser
 ) : ViewModel() {
     private val scope = viewModelScope + Dispatcher.Immediate
 
@@ -227,14 +230,11 @@ sealed class LibraryState {
         shuffleEnabled: Boolean = false,
     ) {
         shownDialog = PlaylistDialog.FileChooser(
-            target, messageHandler, existingTracks,
+            target,
+            context = context, // Usamos el contexto inyectado
+            messageHandler,
+            existingTracks,
             onDismissRequest = {
-                // If the file chooser was arrived at by selecting the 'create playlist'
-                // option for a single track playlist, we want the back button/gesture to
-                // completely dismiss the dialog. If the file chooser was arrived at by
-                // selecting the 'add more files' button in the playlist options dialog
-                // of an existing multi-track playlist, then we want the back button/
-                // gesture to go back to the playlist options dialog for that playlist.
                 if (existingTracks.size == 1)
                     dismissDialog()
                 else showPlaylistOptions(target, existingTracks, shuffleEnabled)

@@ -8,7 +8,6 @@ import android.content.Intent
 import android.service.quicksettings.TileService
 import android.util.Log
 import com.gnzalobnites.soundauraplus.service.PlayerService
-import com.gnzalobnites.soundauraplus.service.PlaylistRecoveryService
 import com.gnzalobnites.soundauraplus.service.TogglePlaybackTileService
 import com.gnzalobnites.soundauraplus.model.database.SoundAuraDatabase
 import dagger.hilt.android.HiltAndroidApp
@@ -29,10 +28,10 @@ class SoundAuraApplication : android.app.Application() {
                     this, ComponentName(this, TogglePlaybackTileService::class.java))
         }
 
-        // --- NUEVO: Iniciar el servicio de recuperación al arrancar la app ---
-        // Esto intentará adquirir permisos persistentes para todos los tracks existentes.
-        val recoveryIntent = Intent(this, PlaylistRecoveryService::class.java)
-        startService(recoveryIntent)
+        // NOTA: Se ha eliminado el inicio de PlaylistRecoveryService.
+        // Los permisos persistentes ahora se adquieren en el momento de seleccionar los archivos,
+        // por lo que este servicio ya no es necesario y además causaba una condición de carrera
+        // con PlayerService al iniciar desde atajos o Quick Settings.
     }
 }
 

@@ -4,6 +4,7 @@
 package com.gnzalobnites.soundauraplus.addbutton
 
 import android.Manifest
+import android.content.Intent
 import android.net.Uri
 import android.os.Build
 import androidx.activity.compose.rememberLauncherForActivityResult
@@ -87,9 +88,26 @@ import com.gnzalobnites.soundauraplus.ui.minTouchTargetSize
     fileTypeArgs: Array<String> = arrayOf("audio/*", "application/ogg"),
     onFilesSelected: (List<Uri>) -> Unit,
 ) {
+    val context = LocalContext.current
     val launcher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.OpenMultipleDocuments(),
-        onResult = onFilesSelected)
+        onResult = { uris ->
+            // --- ADQUIRIR PERMISOS PERSISTENTES ---
+            // Esto es CRUCIAL para que los archivos sigan siendo accesibles después
+            // de reiniciar el teléfono o la aplicación.
+            val takeFlags = Intent.FLAG_GRANT_READ_URI_PERMISSION
+            for (uri in uris) {
+                try {
+                    context.contentResolver.takePersistableUriPermission(uri, takeFlags)
+                } catch (e: SecurityException) {
+                    // Algunos proveedores de contenido (ej. ciertas nubes) no soportan
+                    // permisos persistentes. En ese caso, ignoramos y el permiso será
+                    // temporal (válido solo para esta sesión).
+                }
+            }
+            onFilesSelected(uris)
+        }
+    )
     LaunchedEffect(Unit) { launcher.launch(fileTypeArgs) }
 }
 

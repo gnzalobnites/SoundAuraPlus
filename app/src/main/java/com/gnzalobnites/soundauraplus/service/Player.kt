@@ -7,6 +7,7 @@ import android.content.Context
 import android.media.MediaPlayer
 import android.media.audiofx.LoudnessEnhancer
 import android.net.Uri
+import com.gnzalobnites.soundauraplus.logd
 import java.io.IOException
 
 data class ActivePlaylistSummary(
@@ -154,26 +155,61 @@ class Player(
         var attempts = 0
         var failedUris: MutableList<Uri>? = null
         var newPlayer: MediaPlayer? = null
+        var hasPermissionError = false
 
         while (newPlayer == null && ++attempts <= playlist.tracks.size) {
             val uri = uriIterator.next()
-            newPlayer = mediaPlayer.let {
-                if (it == null)
-                    MediaPlayer.create(context, uri)
-                else try {
-                    it.reset()
-                    it.setDataSource(context, uri)
-                    it.prepare(); it
-                } catch(e: IOException) { null }
+            try {
+                newPlayer = mediaPlayer.let {
+                    if (it == null) {
+                        MediaPlayer.create(context, uri)
+                    } else try {
+                        it.reset()
+                        it.setDataSource(context, uri)
+                        it.prepare()
+                        it
+                    } catch (e: IOException) {
+                        logd("IOException al preparar $uri: ${e.message}")
+                        null
+                    } catch (e: SecurityException) {
+                        // --- PUNTO CLAVE: SecurityException indica problema de permisos ---
+                        // NO debe marcar el archivo como corrupto, solo como no accesible
+                        logd("SecurityException al acceder a $uri: ${e.message}")
+                        hasPermissionError = true
+                        null
+                    }
+                }
+            } catch (e: SecurityException) {
+                // Si MediaPlayer.create() lanza SecurityException (en lugar de devolver null)
+                logd("SecurityException en MediaPlayer.create($uri): ${e.message}")
+                hasPermissionError = true
+                newPlayer = null
+            } catch (e: IOException) {
+                logd("IOException en MediaPlayer.create($uri): ${e.message}")
+                newPlayer = null
             }
+
             if (newPlayer == null) {
-                if (failedUris == null)
+                if (failedUris == null) {
                     failedUris = mutableListOf(uri)
-                else failedUris.add(uri)
-            } else if (startImmediately)
+                } else {
+                    failedUris.add(uri)
+                }
+            } else if (startImmediately) {
                 newPlayer.start()
+            }
         }
-        failedUris?.let(onPlaybackFailure)
+
+        // --- MEJORA CRÍTICA: Distinguir entre error de permisos y error de archivo ---
+        // Si el fallo fue por SecurityException, NO marcamos como "corrupto"
+        // porque el archivo físico está bien, solo falta el permiso.
+        // Si hubo errores pero no fueron de permisos, entonces es un problema real del archivo.
+        if (failedUris != null && !hasPermissionError) {
+            onPlaybackFailure(failedUris)
+        } else if (failedUris != null && hasPermissionError) {
+            // Solo logueamos el problema de permisos, no marcamos como corrupto
+            logd("Permisos insuficientes para ${failedUris.size} URI(s), reintentando más tarde")
+        }
         mediaPlayer = newPlayer
     }
 

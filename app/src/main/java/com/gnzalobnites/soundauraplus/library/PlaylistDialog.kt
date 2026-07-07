@@ -4,6 +4,8 @@
 package com.gnzalobnites.soundauraplus.library
 
 import android.Manifest
+import android.content.Context
+import android.content.Intent
 import android.net.Uri
 import android.os.Build
 import androidx.activity.compose.rememberLauncherForActivityResult
@@ -74,7 +76,12 @@ sealed class PlaylistDialog(
      * option is selected for a single track playlist. A [List] of the [Uri]s
      * of the chosen files should be passed to a [onFilesChosen] call.
      *
+     * IMPORTANTE: Cuando se seleccionan archivos, se adquieren permisos
+     * persistentes para ellos. Esto es crucial para que los archivos sigan
+     * siendo accesibles después de reiniciar el teléfono o la aplicación.
+     *
      * @param target The [Playlist] that is the target of the dialog
+     * @param context The [Context] needed to acquire persistent permissions
      * @param messageHandler A [MessageHandler] instance that will be used to show messages to the user
      * @param currentTracks A [List] of the [Track]s that are already in the playlist
      * @param onDismissRequest The callback that should be invoked when
@@ -84,6 +91,7 @@ sealed class PlaylistDialog(
      */
     class FileChooser(
         target: Playlist,
+        private val context: Context,
         private val messageHandler: MessageHandler,
         currentTracks: List<Track>,
         onDismissRequest: () -> Unit,
@@ -95,6 +103,20 @@ sealed class PlaylistDialog(
                 // If no files were chosen at all, then the user
                 // must have backed out of the file chooser intentionally
             } else {
+                // --- ADQUIRIR PERMISOS PERSISTENTES ---
+                // Esto es CRUCIAL para que los archivos sigan siendo accesibles
+                // después de reiniciar el teléfono o la aplicación.
+                val takeFlags = Intent.FLAG_GRANT_READ_URI_PERMISSION
+                for (uri in chosenFiles) {
+                    try {
+                        context.contentResolver.takePersistableUriPermission(uri, takeFlags)
+                    } catch (e: SecurityException) {
+                        // Algunos proveedores de contenido (ej. ciertas nubes) no soportan
+                        // permisos persistentes. En ese caso, ignoramos y el permiso será
+                        // temporal (válido solo para esta sesión).
+                    }
+                }
+
                 val validFiles = if (currentTracks.size == 1) {
                         chosenFiles - currentTracks.first().uri
                     } else {
@@ -235,7 +257,11 @@ sealed class PlaylistDialog(
         modifier = modifier,
         title = stringResource(R.string.default_rename_dialog_title),
         state = dialogState)
-    is FileChooser -> SystemFileChooser(onFilesSelected = dialogState.onFilesChosen)
+    is FileChooser -> {
+        // El contexto ya se pasó en el constructor de FileChooser
+        // Así que no necesitamos usar LocalContext aquí
+        SystemFileChooser(onFilesSelected = dialogState.onFilesChosen)
+    }
     is PlaylistOptions -> PlaylistOptionsDialog(
         modifier = modifier,
         state = dialogState)
