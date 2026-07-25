@@ -202,7 +202,7 @@ class MainActivity : ComponentActivity() {
         }
 
         enableEdgeToEdge()
-        WindowInsetsControllerCompat(window, window.decorView).isAppearanceLightStatusBars = true
+        WindowInsetsControllerCompat(window, window.decorView).isAppearanceLightStatusBars = !useDarkTheme
         SoundAuraTheme(useDarkTheme) {
             val windowSizeClass = calculateWindowSizeClass(this)
             CompositionLocalProvider(LocalWindowSizeClass provides windowSizeClass) {

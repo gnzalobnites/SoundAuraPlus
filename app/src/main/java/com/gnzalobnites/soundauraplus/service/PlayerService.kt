@@ -5,6 +5,7 @@ package com.gnzalobnites.soundauraplus.service
 
 import android.content.Context
 import android.content.Intent
+import android.content.res.Configuration
 import android.media.AudioManager
 import android.media.AudioManager.AUDIOFOCUS_REQUEST_GRANTED
 import android.net.Uri
@@ -94,6 +95,7 @@ import javax.inject.Inject
  */
 @AndroidEntryPoint
 class PlayerService: LifecycleService() {
+    private var lastNightModeFlags = Configuration.UI_MODE_NIGHT_UNDEFINED
     private val unpauseLocks = mutableSetOf<String>()
     private val playbackModules = mutableListOf(
         OnAudioDeviceChangePlaybackModule(
@@ -146,6 +148,7 @@ class PlayerService: LifecycleService() {
 
     override fun onCreate() {
         super.onCreate()
+        lastNightModeFlags = resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK
 
     playerMap = PlayerMap(
         context = this,
@@ -220,6 +223,15 @@ class PlayerService: LifecycleService() {
         notification.remove()
         playerMap.releaseAll()
         super.onDestroy()
+    }
+
+    override fun onConfigurationChanged(newConfig: Configuration) {
+        super.onConfigurationChanged(newConfig)
+        val newNightModeFlags = newConfig.uiMode and Configuration.UI_MODE_NIGHT_MASK
+        if (newNightModeFlags != lastNightModeFlags) {
+            lastNightModeFlags = newNightModeFlags
+            if (::notification.isInitialized) updateNotification()
+        }
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {

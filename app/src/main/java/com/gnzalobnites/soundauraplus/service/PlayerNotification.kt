@@ -265,6 +265,7 @@ class PlayerNotification(
         timeUntilStop: Duration? = this.timeUntilStop,
     ): Notification {
         val builder = notificationBuilder
+            .setColor(ContextCompat.getColor(service, R.color.player_notification_color))
             .updateText(timeUntilStop)
             .clearActions()
 
