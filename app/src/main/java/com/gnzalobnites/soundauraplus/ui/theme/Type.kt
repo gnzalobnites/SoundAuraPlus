@@ -8,7 +8,7 @@ import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.sp
 
-// Set of Material typography styles to start with
+// Set of Material 2 typography styles
 val Typography = Typography(
     h5 = TextStyle(
         fontWeight = FontWeight.Normal,
@@ -19,5 +19,35 @@ val Typography = Typography(
         fontWeight = FontWeight.Normal,
         fontSize = 18.sp,
         letterSpacing = 0.15.sp
+    ),
+    body1 = TextStyle(
+        fontWeight = FontWeight.Normal,
+        fontSize = 16.sp,
+        letterSpacing = 0.5.sp
+    ),
+    body2 = TextStyle(
+        fontWeight = FontWeight.Normal,
+        fontSize = 14.sp,
+        letterSpacing = 0.25.sp
+    ),
+    button = TextStyle(
+        fontWeight = FontWeight.Medium,
+        fontSize = 14.sp,
+        letterSpacing = 0.1.sp
+    ),
+    caption = TextStyle(
+        fontWeight = FontWeight.Normal,
+        fontSize = 12.sp,
+        letterSpacing = 0.4.sp
+    ),
+    subtitle1 = TextStyle(
+        fontWeight = FontWeight.Normal,
+        fontSize = 16.sp,
+        letterSpacing = 0.15.sp
+    ),
+    subtitle2 = TextStyle(
+        fontWeight = FontWeight.Normal,
+        fontSize = 14.sp,
+        letterSpacing = 0.1.sp
     )
 )

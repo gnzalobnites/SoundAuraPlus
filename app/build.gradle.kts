@@ -95,11 +95,21 @@ tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile> {
 
 dependencies {
     implementation("androidx.core:core-ktx:1.17.0")
+    
+    // Mantener Material 2 para componentes existentes
+    implementation("androidx.compose.material:material:1.7.8")
+    implementation("androidx.compose.material:material-icons-extended:1.7.8")
+    
+    // Agregar Material 3 para nuevos componentes y colores dinámicos
+    implementation("androidx.compose.material3:material3:1.4.0")
+    implementation("androidx.compose.material3:material3-window-size-class:1.4.0")
+    
+    // Core Compose
     implementation("androidx.compose.ui:ui:1.9.4")
-    implementation("androidx.compose.material:material:1.9.4")
     implementation("androidx.compose.ui:ui-tooling-preview:1.9.4")
     implementation("androidx.compose.animation:animation:1.9.4")
     implementation("androidx.compose.animation:animation-graphics:1.9.4")
+    
     implementation("androidx.appcompat:appcompat:1.7.1")
     implementation("com.google.android.material:material:1.13.0")
     implementation("androidx.activity:activity-compose:1.11.0")
@@ -107,18 +117,14 @@ dependencies {
     implementation("androidx.lifecycle:lifecycle-service:2.9.4")
     implementation("androidx.room:room-runtime:2.8.3")
     implementation("androidx.room:room-ktx:2.8.3")
-    implementation("androidx.compose.material:material-icons-extended:1.7.8")
     implementation("androidx.lifecycle:lifecycle-viewmodel-ktx:2.9.4")
     implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.9.4")
     implementation("androidx.documentfile:documentfile:1.1.0")
-    implementation("com.google.accompanist:accompanist-insets:0.30.1")
-    implementation("com.google.accompanist:accompanist-insets-ui:0.36.0")
     implementation("androidx.media:media:1.7.1")
     implementation("androidx.datastore:datastore-preferences:1.1.7")
     implementation("com.google.dagger:hilt-android:2.57.2")
     implementation("com.mikepenz:aboutlibraries-core:13.1.0")
     implementation("com.mikepenz:aboutlibraries-compose:13.1.0")
-    implementation("androidx.compose.material3:material3-window-size-class:1.4.0")
     implementation("org.jetbrains.kotlinx:kotlinx-collections-immutable:0.4.0")
     implementation("sh.calvin.reorderable:reorderable:3.0.0")
     coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.1.5")

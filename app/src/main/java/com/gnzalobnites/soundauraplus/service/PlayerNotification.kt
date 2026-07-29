@@ -119,7 +119,8 @@ class PlayerNotification(
     private val notificationBuilder: NotificationCompat.Builder =
         NotificationCompat.Builder(service, channelId)
             .setOngoing(true)
-            .setColorized(true)
+            .setColorized(false) // IMPORTANTE: Delegar color al sistema
+            // No usar setColor() - dejar que el sistema gestione el color
             .setSmallIcon(R.drawable.tile_and_notification_icon)
             .setContentIntent(PendingIntent.getActivity(service, 0,
                 Intent(service, MainActivity::class.java).apply {
@@ -265,7 +266,7 @@ class PlayerNotification(
         timeUntilStop: Duration? = this.timeUntilStop,
     ): Notification {
         val builder = notificationBuilder
-            .setColor(ContextCompat.getColor(service, R.color.player_notification_color))
+            // NO usar setColor - delegar al sistema
             .updateText(timeUntilStop)
             .clearActions()
 

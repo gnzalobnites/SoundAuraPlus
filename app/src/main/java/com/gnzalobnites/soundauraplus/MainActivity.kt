@@ -23,6 +23,7 @@ import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.systemBars
 import androidx.compose.foundation.lazy.rememberLazyListState
+// Usar Material 2 para SnackbarHost (compatible con el código existente)
 import androidx.compose.material.MaterialTheme
 import androidx.compose.material.SnackbarHost
 import androidx.compose.material.SnackbarHostState
@@ -66,6 +67,10 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.plus
 import kotlinx.coroutines.runBlocking
 import javax.inject.Inject
+
+val LocalWindowSizeClass = compositionLocalOf {
+    WindowSizeClass.calculateFromSize(DpSize(0.dp, 0.dp))
+}
 
 @HiltViewModel class MainActivityViewModel @Inject constructor(
     messageHandler: MessageHandler,
@@ -119,10 +124,6 @@ import javax.inject.Inject
             } else false
         } else -> false
     }
-}
-
-val LocalWindowSizeClass = compositionLocalOf {
-    WindowSizeClass.calculateFromSize(DpSize(0.dp, 0.dp))
 }
 
 @AndroidEntryPoint
@@ -203,6 +204,8 @@ class MainActivity : ComponentActivity() {
 
         enableEdgeToEdge()
         WindowInsetsControllerCompat(window, window.decorView).isAppearanceLightStatusBars = !useDarkTheme
+        
+        // El tema usa Material 3 para colores dinámicos
         SoundAuraTheme(useDarkTheme) {
             val windowSizeClass = calculateWindowSizeClass(this)
             CompositionLocalProvider(LocalWindowSizeClass provides windowSizeClass) {
@@ -246,6 +249,7 @@ class MainActivity : ComponentActivity() {
             animationSpec = tween(tweenDuration, 0, LinearOutSlowInEasing))
 
         AddButton(
+            // Usar MaterialTheme de Material 2 para compatibilidad con componentes existentes
             backgroundColor = MaterialTheme.colors.secondaryVariant,
             visible = !viewModel.showingAppSettings,
             modifier = modifier.graphicsLayer {

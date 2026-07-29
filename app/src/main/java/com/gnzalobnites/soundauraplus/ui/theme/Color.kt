@@ -5,6 +5,7 @@ package com.gnzalobnites.soundauraplus.ui.theme
 
 import androidx.compose.ui.graphics.Color
 
+// Colores para el modo claro (fallback)
 val LightThemePrimary = Color(0xFF398E66)
 val LightThemeSecondary = Color(0xFF2E8E8B)
 val LightThemePrimaryVariant = Color(0xFF55D69A)
@@ -15,6 +16,7 @@ val LightOnSurface = Color(0xFF2E3236)
 val LightOnPrimary = Color(0xFF2E3236)
 val LightError = Color(0xFFD67283)
 
+// Colores para el modo oscuro (fallback)
 val DarkThemePrimary = Color(0xFF3AAD77)
 val DarkThemeSecondary = Color(0xFF30A8A8)
 val DarkThemePrimaryVariant = Color(0xFF359467)
