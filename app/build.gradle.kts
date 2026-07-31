@@ -52,7 +52,7 @@ android {
             isMinifyEnabled = false
             isShrinkResources = false
             isDebuggable = true
-        }
+}
         release {
         	signingConfig = signingConfigs.getByName("release")
             isMinifyEnabled = false
@@ -60,7 +60,7 @@ android {
             isDebuggable = false
             proguardFiles(getDefaultProguardFile(
                 "proguard-android-optimize.txt"), "proguard-rules.pro")
-        }
+}
     }
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_21
