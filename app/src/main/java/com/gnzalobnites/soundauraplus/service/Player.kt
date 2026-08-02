@@ -5,12 +5,21 @@
 
 package com.gnzalobnites.soundauraplus.service
 
+import android.Manifest
+import android.content.ContentUris
 import android.content.Context
+import android.content.pm.PackageManager
 import android.media.MediaPlayer
 import android.media.audiofx.LoudnessEnhancer
 import android.net.Uri
+import android.os.Build
+import android.provider.MediaStore
+import androidx.core.content.ContextCompat
+import com.gnzalobnites.soundauraplus.Dispatcher
 import com.gnzalobnites.soundauraplus.logd
 import com.gnzalobnites.soundauraplus.model.UriPermissionManager
+import com.gnzalobnites.soundauraplus.model.database.PlaylistDao
+import kotlinx.coroutines.runBlocking
 import java.io.IOException
 
 data class ActivePlaylistSummary(
@@ -33,7 +42,8 @@ class Player(
     startImmediately: Boolean = false,
     private val onPlaybackFailure: (List<Uri>) -> Unit,
     private val onMissingPermissions: (List<Uri>) -> Unit,
-    private val permissionManager: UriPermissionManager
+    private val permissionManager: UriPermissionManager,
+    private val playlistDao: PlaylistDao
 ) {
     private var uriIterator = uriIterator(playlist)
     private var mediaPlayer: MediaPlayer? = null
@@ -135,9 +145,10 @@ class Player(
 
         while (newPlayer == null && ++attempts <= playlist.tracks.size) {
             val uri = uriIterator.next()
+            val playableUri = resolvePlayableUri(uri)
 
-            if (!permissionManager.hasPersistablePermission(uri)) {
-                logd("URI sin permiso persistente: $uri")
+            if (playableUri == null) {
+                logd("URI sin permiso persistente ni alternativa en MediaStore: $uri")
                 permissionMissingUris.add(uri)
                 continue
             }
@@ -146,36 +157,38 @@ class Player(
                 if (mediaPlayer != null) {
                     try {
                         mediaPlayer?.reset()
-                        mediaPlayer?.setDataSource(context, uri)
+                        mediaPlayer?.setDataSource(context, playableUri)
                         mediaPlayer?.prepare()
                         newPlayer = mediaPlayer
                     } catch (e: IOException) {
-                        logd("IOException al preparar $uri: ${e.message}")
+                        logd("IOException al preparar $playableUri: ${e.message}")
                         mediaPlayer?.release()
                         mediaPlayer = null
-                        val created = MediaPlayer.create(context, uri)
+                        val created = MediaPlayer.create(context, playableUri)
                         if (created == null) {
-                            logd("MediaPlayer.create devolvió null para: $uri")
+                            logd("MediaPlayer.create devolvió null para: $playableUri")
                             ioErrorUris.add(uri)
                             continue
                         }
                         newPlayer = created
                     } catch (e: SecurityException) {
-                        logd("SecurityException al acceder a $uri: ${e.message}")
+                        logd("SecurityException al acceder a $playableUri: ${e.message}")
+                        permissionManager.invalidateCachedPermission(uri)
                         permissionMissingUris.add(uri)
                         continue
                     }
                 } else {
-                    val created = MediaPlayer.create(context, uri)
+                    val created = MediaPlayer.create(context, playableUri)
                     if (created == null) {
-                        logd("MediaPlayer.create devolvió null para: $uri")
+                        logd("MediaPlayer.create devolvió null para: $playableUri")
                         ioErrorUris.add(uri)
                         continue
                     }
                     newPlayer = created
                 }
             } catch (e: SecurityException) {
-                logd("SecurityException en MediaPlayer.create($uri): ${e.message}")
+                logd("SecurityException en MediaPlayer.create($playableUri): ${e.message}")
+                permissionManager.invalidateCachedPermission(uri)
                 permissionMissingUris.add(uri)
                 continue
             }
@@ -206,6 +219,49 @@ class Player(
             mediaPlayer = null
         } else if (newPlayer != null) {
             mediaPlayer = newPlayer
+        }
+    }
+
+    /**
+     * Devuelve un [Uri] reproducible para [uri]: el propio [uri] si su permiso
+     * persistente sigue siendo válido, o una alternativa equivalente indexada
+     * en MediaStore (localizada por nombre de archivo original) si el permiso
+     * se perdió. Devuelve null si no hay ninguna forma conocida de reproducirlo.
+     */
+    private fun resolvePlayableUri(uri: Uri): Uri? {
+        if (permissionManager.hasPersistablePermission(uri)) return uri
+        logd("Permiso persistente perdido para $uri, buscando alternativa en MediaStore")
+        val displayName = runBlocking(Dispatcher.IO) {
+            playlistDao.getDisplayName(uri)
+        }
+        if (displayName.isNullOrBlank()) return null
+        return queryMediaStoreByDisplayName(displayName)
+    }
+
+    private fun queryMediaStoreByDisplayName(displayName: String): Uri? {
+        val readPermission =
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU)
+                Manifest.permission.READ_MEDIA_AUDIO
+            else Manifest.permission.READ_EXTERNAL_STORAGE
+        if (ContextCompat.checkSelfPermission(context, readPermission) !=
+            PackageManager.PERMISSION_GRANTED
+        ) return null
+
+        val projection = arrayOf(MediaStore.Audio.Media._ID)
+        val selection = "${MediaStore.Audio.Media.DISPLAY_NAME} = ?"
+        return try {
+            context.contentResolver.query(
+                MediaStore.Audio.Media.EXTERNAL_CONTENT_URI,
+                projection, selection, arrayOf(displayName), null
+            )?.use { cursor ->
+                if (!cursor.moveToFirst()) return null
+                val id = cursor.getLong(cursor.getColumnIndexOrThrow(MediaStore.Audio.Media._ID))
+                ContentUris.withAppendedId(MediaStore.Audio.Media.EXTERNAL_CONTENT_URI, id)
+                    .also { logd("Alternativa encontrada en MediaStore para $displayName: $it") }
+            }
+        } catch (e: SecurityException) {
+            logd("Sin permiso para consultar MediaStore: ${e.message}")
+            null
         }
     }
 

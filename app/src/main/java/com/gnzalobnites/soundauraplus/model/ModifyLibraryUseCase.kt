@@ -5,19 +5,33 @@
 
 package com.gnzalobnites.soundauraplus.model
 
+import android.content.Context
 import android.net.Uri
+import androidx.documentfile.provider.DocumentFile
 import com.gnzalobnites.soundauraplus.dialog.ValidatedNamingState
 import com.gnzalobnites.soundauraplus.model.database.PlaylistDao
 import com.gnzalobnites.soundauraplus.model.database.Track
 import com.gnzalobnites.soundauraplus.model.database.playlistRenameValidator
+import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.CoroutineScope
 import javax.inject.Inject
 
 class ModifyLibraryUseCase @Inject constructor(
     private val validator: UriPermissionValidator,
     private val permissionManager: UriPermissionManager,
-    private val dao: PlaylistDao
+    private val dao: PlaylistDao,
+    @ApplicationContext private val context: Context
 ) {
+
+    /** Guarda el nombre de archivo original de cada [Uri] en [uris], usado
+     * como respaldo para localizarlos en MediaStore si su permiso SAF se
+     * pierde más adelante. */
+    private suspend fun saveDisplayNames(uris: List<Uri>) {
+        for (uri in uris) {
+            val name = DocumentFile.fromSingleUri(context, uri)?.name ?: continue
+            dao.setDisplayName(uri, name)
+        }
+    }
 
     suspend fun togglePlaylistIsActive(playlistId: Long) {
         dao.toggleIsActive(playlistId)
@@ -82,6 +96,7 @@ class ModifyLibraryUseCase @Inject constructor(
             newUris = validation.valid,
             removableUris = uniqueUris
         )
+        saveDisplayNames(validation.valid)
 
         return Result.Success
     }

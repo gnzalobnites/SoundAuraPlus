@@ -286,6 +286,15 @@ private const val librarySelectWithFilter =
     @Query("UPDATE track SET hasError = 1 WHERE uri in (:uris)")
     abstract suspend fun setTracksHaveError(uris: List<Uri>)
 
+    /** Guarda el nombre de archivo original de la pista [uri], usado como
+     * respaldo para localizarla en MediaStore si su permiso SAF se pierde. */
+    @Query("UPDATE track SET displayName = :displayName WHERE uri = :uri")
+    abstract suspend fun setDisplayName(uri: Uri, displayName: String)
+
+    /** Devuelve el nombre de archivo guardado para [uri], o null si no se guardó. */
+    @Query("SELECT displayName FROM track WHERE uri = :uri LIMIT 1")
+    abstract suspend fun getDisplayName(uri: Uri): String?
+
     // --- MÉTODO PARA EL WIDGET ---
     @Query("""
         SELECT id, name, shuffle, isActive,

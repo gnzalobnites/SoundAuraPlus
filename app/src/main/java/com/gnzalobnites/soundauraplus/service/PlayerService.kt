@@ -150,9 +150,16 @@ class PlayerService: LifecycleService() {
         super.onCreate()
         lastNightModeFlags = resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK
 
+        // Resincroniza el índice de permisos con el sistema al arrancar el
+        // servicio: el caché en memoria de UriPermissionManager solo se
+        // actualiza en escrituras propias, así que si Android revocó algún
+        // permiso mientras el proceso no corría, aquí es donde nos enteramos.
+        runBlocking { permissionManager.refreshPermissionIndex() }
+
     playerMap = PlayerMap(
         context = this,
         permissionManager = permissionManager,
+        playlistDao = playlistDao,
         onPlaybackFailure = { problemUris ->
             logd("URIs con errores de IO: ${problemUris.size}")
             lifecycleScope.launch {
@@ -161,6 +168,9 @@ class PlayerService: LifecycleService() {
         },
         onMissingPermissions = { missingUris ->
             logd("URIs sin permiso persistente: ${missingUris.size}")
+            lifecycleScope.launch {
+                playlistDao.setTracksHaveError(missingUris)
+            }
             try {
                 Toast.makeText(
                     this,

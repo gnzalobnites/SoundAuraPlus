@@ -84,6 +84,18 @@ class UriPermissionManager @Inject constructor(
     }
 
     /**
+     * Corrige el índice en memoria para un único [Uri], sin necesidad de una
+     * consulta a ContentResolver. Debe llamarse cuando se detecta en vivo
+     * (p. ej. mediante SecurityException) que el sistema ya no concede el
+     * permiso que el índice en memoria creía vigente.
+     */
+    fun invalidateCachedPermission(uri: Uri) {
+        if (uri !in persistedUris) return
+        persistedUris = persistedUris - uri
+        logd("Permiso invalidado en caché tras fallo en vivo: $uri")
+    }
+
+    /**
      * Filtra una lista de URIs, separando los válidos de los inválidos.
      */
     fun filterUris(uris: List<Uri>): PermissionFilterResult {

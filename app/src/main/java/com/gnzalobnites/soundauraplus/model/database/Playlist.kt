@@ -28,7 +28,12 @@ data class Track(
     @PrimaryKey val uri: Uri,
 
     @ColumnInfo(defaultValue = "0")
-    val hasError: Boolean = false
+    val hasError: Boolean = false,
+
+    /** Nombre de archivo original, guardado como respaldo para
+     * localizar la pista en MediaStore si se pierde su permiso SAF. */
+    @ColumnInfo(defaultValue = "NULL")
+    val displayName: String? = null
 ) {
     class UriStringConverter {
         @TypeConverter fun fromString(string: String) = string.toUri()

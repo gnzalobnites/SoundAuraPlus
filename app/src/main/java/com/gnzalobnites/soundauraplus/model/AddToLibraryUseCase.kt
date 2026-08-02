@@ -5,11 +5,14 @@
 
 package com.gnzalobnites.soundauraplus.model
 
+import android.content.Context
 import android.net.Uri
+import androidx.documentfile.provider.DocumentFile
 import com.gnzalobnites.soundauraplus.model.database.PlaylistDao
 import com.gnzalobnites.soundauraplus.model.database.Track
 import com.gnzalobnites.soundauraplus.model.database.TrackNamesValidator
 import com.gnzalobnites.soundauraplus.model.database.newPlaylistNameValidator
+import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.CoroutineScope
 import javax.inject.Inject
 
@@ -24,8 +27,20 @@ import javax.inject.Inject
  */
 class AddToLibraryUseCase @Inject constructor(
     private val validator: UriPermissionValidator,
-    private val dao: PlaylistDao
+    private val dao: PlaylistDao,
+    @ApplicationContext private val context: Context
 ) {
+
+    /** Guarda el nombre de archivo original de cada [Uri] en [uris], usado
+     * como respaldo para localizarlos en MediaStore si su permiso SAF se
+     * pierde más adelante. Los fallos individuales se ignoran: es un
+     * respaldo best-effort, no algo de lo que dependa añadir la pista. */
+    private suspend fun saveDisplayNames(uris: List<Uri>) {
+        for (uri in uris) {
+            val name = DocumentFile.fromSingleUri(context, uri)?.name ?: continue
+            dao.setDisplayName(uri, name)
+        }
+    }
 
     fun trackNamesValidator(
         scope: CoroutineScope,
@@ -59,6 +74,7 @@ class AddToLibraryUseCase @Inject constructor(
         }
 
         dao.insertSingleTrackPlaylists(names, uris, validation.valid)
+        saveDisplayNames(validation.valid)
         return Result.Success
     }
 
@@ -86,6 +102,7 @@ class AddToLibraryUseCase @Inject constructor(
         }
 
         dao.insertPlaylist(name, shuffle, tracks, validation.valid)
+        saveDisplayNames(validation.valid)
         return Result.Success
     }
 }

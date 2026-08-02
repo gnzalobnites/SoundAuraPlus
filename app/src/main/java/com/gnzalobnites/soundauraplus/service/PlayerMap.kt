@@ -8,10 +8,12 @@ package com.gnzalobnites.soundauraplus.service
 import android.content.Context
 import android.net.Uri
 import com.gnzalobnites.soundauraplus.model.UriPermissionManager
+import com.gnzalobnites.soundauraplus.model.database.PlaylistDao
 
 class PlayerMap(
     private val context: Context,
     private val permissionManager: UriPermissionManager,
+    private val playlistDao: PlaylistDao,
     private val onPlaybackFailure: (uris: List<Uri>) -> Unit,
     private val onMissingPermissions: (uris: List<Uri>) -> Unit,
 ) {
@@ -44,7 +46,8 @@ class PlayerMap(
                     startImmediately = startPlaying,
                     onPlaybackFailure = onPlaybackFailure,
                     onMissingPermissions = onMissingPermissions,
-                    permissionManager = permissionManager
+                    permissionManager = permissionManager,
+                    playlistDao = playlistDao
                 )
         }
         oldMap.values.forEach(Player::release)
